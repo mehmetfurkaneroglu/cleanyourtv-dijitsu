@@ -40,6 +40,14 @@ final class Config {
     static final String FILE_NAME = "config.json";
     static final String WALLPAPER_NAME = "wallpaper.jpg";
     static final String SETTINGS_NAME = "launcher_settings";
+    /** Launcher settings' "Live TV at power-on" row; unset, boot_to_live_tv from config.xml decides. */
+    static final String LIVE_TV_ON_START_KEY = "live_tv_on_start";
+
+    /** Whether the TV should come up on Live TV, after a boot and after standby (the Launcher settings row). */
+    static boolean liveTvOnStart(Context context) {
+        return context.getSharedPreferences(SETTINGS_NAME, Context.MODE_PRIVATE).getBoolean(LIVE_TV_ON_START_KEY,
+                context.getResources().getBoolean(R.bool.boot_to_live_tv));
+    }
     static final String ROWS_BELOW_DOCK_KEY = "rows_below_dock";
     static final String WALLPAPER_CHOICE_KEY = "wallpaper_choice";
     static final String DOCK_OPACITY_KEY = "dock_opacity";

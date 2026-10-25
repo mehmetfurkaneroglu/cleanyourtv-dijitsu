@@ -182,6 +182,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private View btnUsb;
     /** The Sleep pill (sleep_timer_minutes): the TV's own sleep timer through the CVTE TV API. */
     private TextView btnSleep;
+    /** Home came up at power-on with "Live TV at power-on" off: start on the Live TV pill, once. */
+    static final String EXTRA_FOCUS_LIVE_TV = "com.gathin.tvhome.extra.FOCUS_LIVE_TV";
+    private static final String LIVE_TV_FOCUS_BOOT_KEY = "live_tv_focus_boot";
+    private boolean focusLiveTvOnce;
     private SleepTimer sleepTimer;
     private final Runnable sleepTick = this::updateSleepPill;
     /** config show_inputs_pill: false keeps the Inputs pill hidden even when the TV has inputs. */
@@ -410,7 +414,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         festive = festival.active(LocalDate.now());
         liveTvPkg = cfg.liveTvPackage;
         idleClockMs = cfg.homeIdleClockMinutes * MINUTE_MS;
-        bootToLiveTv = cfg.bootToLiveTv;
+        bootToLiveTv = Config.liveTvOnStart(this);
         openOnStartChoice = cfg.openOnStartChoice;
         liveTvAction = cfg.liveTvAction;
         liveTvInputId = cfg.liveTvInputId;
@@ -915,6 +919,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         super.onNewIntent(intent);
         if (openLauncherSettingsIfAsked(intent)) return;
         if (openInputsIfAsked(intent)) return;
+        if (intent != null && intent.getBooleanExtra(EXTRA_FOCUS_LIVE_TV, false)) focusLiveTvOnce = true;
         if (intent == null || !intent.hasCategory(Intent.CATEGORY_HOME)) return;
         grid.scrollToPosition(0);
         lastFocused = 0;
@@ -974,6 +979,20 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 break;
         }
         if (openLiveTvAfterBoot()) return;
+        // The first Home after a boot, with "Live TV at power-on" off, starts on the Live TV pill too.
+        SharedPreferences bootPrefs = getSharedPreferences(OpenOnStart.BOOT_PREFS, MODE_PRIVATE);
+        int boot = OpenOnStart.boot(this);
+        if (!bootToLiveTv && boot >= 0 && bootPrefs.getInt(LIVE_TV_FOCUS_BOOT_KEY, -1) != boot) {
+            bootPrefs.edit().putInt(LIVE_TV_FOCUS_BOOT_KEY, boot).apply();
+            focusLiveTvOnce = true;
+        }
+        if (focusLiveTvOnce) {
+            focusLiveTvOnce = false;
+            // After the tiles' own focus restore, which is posted too.
+            root.postDelayed(() -> {
+                if (btnLiveTv.getVisibility() == View.VISIBLE) btnLiveTv.requestFocus();
+            }, 400);
+        }
         updateGreeting();
         updateRace();
         // The network and Inputs pills keep their state while Home is in the background, and callbacks update them
@@ -2813,6 +2832,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         String app = openOnStartChoice ? getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE)
                 .getString(OpenOnStart.KEY, "") : "";
         if (!bootToLiveTv && app.isEmpty()) return false;
+        if (ProgramSchedule.inWindow(this)) return false;   // a program woke the TV: its channel, not this
         int boot = OpenOnStart.boot(this);
         SharedPreferences prefs = getSharedPreferences(OpenOnStart.BOOT_PREFS, MODE_PRIVATE);
         String target = bootToLiveTv ? liveTvPkg : app;

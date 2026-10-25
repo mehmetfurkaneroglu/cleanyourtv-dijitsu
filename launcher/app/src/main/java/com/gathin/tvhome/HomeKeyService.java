@@ -130,6 +130,7 @@ public class HomeKeyService extends AccessibilityService {
         if (running == this) running = null;
         stopWaitingForUnlock();
         if (screenOnReceiver != null) unregisterReceiver(screenOnReceiver);
+        if (wakeChoiceReceiver != null) unregisterReceiver(wakeChoiceReceiver);
         if (standbyExit != null) {
             try {
                 unregisterReceiver(standbyExit);
@@ -215,6 +216,7 @@ public class HomeKeyService extends AccessibilityService {
         }
         if (!stockHome.isEmpty() || !powerOnLiveTv.isEmpty()) probeAtBoot();
         armStandbyExit();
+        armWakeChoice();
         holdAppKeys = RemoteKeys.parseHoldAppKeys(config.appKeys);
         holdAppScancodes = RemoteKeys.parseHoldAppScancodes(config.appKeys);
         // gamepad_passthrough, off by default. Only with key_filter on: off, the service never filters keys.
@@ -292,6 +294,27 @@ public class HomeKeyService extends AccessibilityService {
         if (!stockHome.isEmpty() && cls != null && stockHome.contains(cls.toString())) openHome();
     }
 
+    /** The TV leaves standby without a boot (CVTE suspends): MainActivity's boot_to_live_tv never sees that. */
+    private BroadcastReceiver wakeChoiceReceiver;
+    /** After the firmware's own screen-on handling, so the choice is what stays on screen. */
+    private static final long WAKE_CHOICE_DELAY_MS = 1_500;
+
+    /** Launcher settings' "Live TV at power-on" after standby: DTV when on, Home when off, nothing in a program. */
+    private void armWakeChoice() {
+        if (wakeChoiceReceiver != null || stockHome.isEmpty()) return;
+        wakeChoiceReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                handler.postDelayed(() -> {
+                    if (ProgramSchedule.inWindow(HomeKeyService.this)) return;
+                    if (Config.liveTvOnStart(HomeKeyService.this)) CvteTv.openDtv(HomeKeyService.this);
+                    else openHome(true);
+                }, WAKE_CHOICE_DELAY_MS);
+            }
+        };
+        registerReceiver(wakeChoiceReceiver, new IntentFilter(Intent.ACTION_SCREEN_ON));
+    }
+
     /** How long power_on_home stays armed after the screen turns on without a reboot. */
     static final long SCREEN_ON_WINDOW_MS = 60 * 1000L;
 
@@ -356,8 +379,14 @@ public class HomeKeyService extends AccessibilityService {
     }
 
     private void openHome() {
+        openHome(false);
+    }
+
+    /** {@code powerOn}: Home after standby with "Live TV at power-on" off, which starts on the Live TV pill. */
+    private void openHome(boolean powerOn) {
         Intent open = stockHomeStays() ? new Intent(this, MainActivity.class)
                 : new Intent(Intent.ACTION_MAIN).setPackage(getPackageName());
+        if (powerOn) open.putExtra(MainActivity.EXTRA_FOCUS_LIVE_TV, true);
         startActivity(open.addCategory(Intent.CATEGORY_HOME)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED));
     }

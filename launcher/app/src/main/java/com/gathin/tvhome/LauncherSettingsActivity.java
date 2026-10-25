@@ -32,6 +32,8 @@ public final class LauncherSettingsActivity extends Activity {
     private TextView advancedChoice;
     private TextView followThemeChoice;
     private TextView openOnStartChoice;
+    /** "Live TV at power-on" (Config.liveTvOnStart). */
+    private TextView liveTvStartChoice;
     private int columns;
     private int rowsBelowDock;
     private int dockOpacity;
@@ -122,6 +124,12 @@ public final class LauncherSettingsActivity extends Activity {
                         .setNegativeButton(android.R.string.cancel, null)
                         .show();
             }
+        });
+        liveTvStartChoice = findViewById(R.id.liveTvStartChoice);
+        liveTvStartChoice.setOnClickListener(v -> {
+            choices.edit().putBoolean(Config.LIVE_TV_ON_START_KEY, !Config.liveTvOnStart(this)).apply();
+            changed();
+            refresh();
         });
         openOnStartChoice = findViewById(R.id.openOnStartChoice);
         if (config.openOnStartChoice) {
@@ -291,6 +299,8 @@ public final class LauncherSettingsActivity extends Activity {
                         : wallpaperCurrent != null ? wallpaperCurrent
                         : getString(R.string.wallpaper_theme_default)));
         openOnStartChoice.setText(getString(R.string.open_on_start_state, openOnStartLabel()));
+        liveTvStartChoice.setText(getString(R.string.live_tv_on_start_state,
+                getString(Config.liveTvOnStart(this) ? R.string.on : R.string.off)));
         followThemeChoice.setSelected(!hasOnTvChoices());
     }
 

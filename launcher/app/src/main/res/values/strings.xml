@@ -31,6 +31,7 @@
     <string name="program_save" tools:ignore="MissingTranslation">Save</string>
     <string name="program_delete" tools:ignore="MissingTranslation">Delete</string>
     <string name="program_pick_day" tools:ignore="MissingTranslation">Pick at least one day</string>
+    <string name="live_tv_on_start" tools:ignore="MissingTranslation">Live TV at power-on</string>
     <string name="live_tv">Live TV</string>
     <string name="hdmi" translatable="false">HDMI</string>
     <string name="usb" translatable="false">USB</string>
@@ -82,6 +83,7 @@
     <string name="wallpaper_applied">Wallpaper changed</string>
     <string name="wallpaper_theme_default">Theme default</string>
     <string name="animations_state">Animations: %1$s</string>
+    <string name="live_tv_on_start_state" tools:ignore="MissingTranslation">Live TV at power-on: %1$s</string>
     <string name="advanced_effects">Advanced effects</string>
     <string name="advanced_effects_state">Advanced effects: %1$s</string>
     <string name="open_on_start_label">Open on start</string>
