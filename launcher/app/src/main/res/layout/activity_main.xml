@@ -323,6 +323,14 @@
                 android:orientation="horizontal">
 
                 <TextView
+                    android:id="@+id/btnLiveTv"
+                    style="@style/TopButton"
+                    android:text="@string/live_tv"
+                    android:drawableStart="@drawable/ic_livetv"
+                    android:visibility="gone"
+                    android:nextFocusDown="@+id/grid" />
+
+                <TextView
                     android:id="@+id/btnInputs"
                     style="@style/TopButton"
                     android:text="@string/inputs"

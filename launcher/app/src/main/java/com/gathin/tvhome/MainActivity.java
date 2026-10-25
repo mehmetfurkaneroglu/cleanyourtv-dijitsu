@@ -52,6 +52,7 @@ import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -125,6 +126,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private boolean tileMenuEnabled;
     private String inputAction;
     private String inputUriScheme;
+    /** config input_source_component: the CVTE TV activity that switches to a source number (sourceid extra). */
+    private String inputSourceComponent;
+    /** config live_tv_pill / live_tv_source: a Live TV pill next to the Inputs pill, which is then HDMI only. */
+    private boolean liveTvPill;
+    private int liveTvSource;
     private String sourcePanelService;
     private String sourcePanelAction;
     private String sourcePanelExtra;
@@ -171,6 +177,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private TextView greeting;
     private View clockBlock;
     private View btnInputs;
+    private View btnLiveTv;
     /** config show_inputs_pill: false keeps the Inputs pill hidden even when the TV has inputs. */
     private boolean showInputsPill = true;
     private TextView btnWifi;
@@ -405,6 +412,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         tileMenuEnabled = cfg.tileMenu;
         inputAction = cfg.inputAction;
         inputUriScheme = cfg.inputUriScheme;
+        inputSourceComponent = getString(R.string.input_source_component).trim();
+        liveTvPill = getResources().getBoolean(R.bool.live_tv_pill);
+        liveTvSource = getResources().getInteger(R.integer.live_tv_source);
         sourcePanelService = cfg.sourcePanelService;
         sourcePanelAction = cfg.sourcePanelAction;
         sourcePanelExtra = cfg.sourcePanelExtra;
@@ -768,7 +778,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 focusTile(singleRow ? lastFocused : lastFocused % COLUMNS);
                 return true;
             }
-            int firstButton = btnInputs.getVisibility() == View.VISIBLE ? R.id.btnInputs : firstTopButton().getId();
+            int firstButton = btnLiveTv.getVisibility() == View.VISIBLE ? R.id.btnLiveTv
+                    : btnInputs.getVisibility() == View.VISIBLE ? R.id.btnInputs : firstTopButton().getId();
             int leftButton = rtlMenuBar ? R.id.btnSettings : firstButton;
             int rightButton = rtlMenuBar ? firstButton : R.id.btnSettings;
             if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) return v.getId() == leftButton;
@@ -2750,6 +2761,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     /** Hides the Inputs pill when it would have nothing to list: streaming boxes have no HDMI-in, AV or tuner. */
     private void updateInputsButton() {
+        btnLiveTv.setVisibility(liveTvPill && showInputsPill
+                && (liveTvIntent() != null || (!inputSourceComponent.isEmpty() && liveTvSource >= 0))
+                ? View.VISIBLE : View.GONE);
         if (!showInputsPill) {
             btnInputs.setVisibility(View.GONE);
             return;
@@ -2847,6 +2861,56 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         return null;
     }
 
+    /** input_source_component: opens the CVTE TV activity on a source number, as the firmware's HDMI auto-switch
+     *  does (MAIN/TV_HOME, int extra "sourceid", isLauncherGoToTv). False when not configured or not startable. */
+    private boolean openSourceNumber(int source) {
+        ComponentName c = inputSourceComponent.isEmpty() ? null : ComponentName.unflattenFromString(inputSourceComponent);
+        if (c == null) return false;
+        try {
+            startActivity(new Intent(Intent.ACTION_MAIN).addCategory("android.intent.category.TV_HOME").setComponent(c)
+                    .putExtra("isLauncherGoToTv", true).putExtra("sourceid", source)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            return true;
+        } catch (ActivityNotFoundException | SecurityException e) {
+            return false;
+        }
+    }
+
+    /** live_tv_tif_package: the CVTE TIF player intent the source panel sends (com.cvte.tv.globalui), full screen,
+     *  handing over to input_source_component afterwards. False when not configured or not startable. */
+    private boolean openTifSource(int source) {
+        String pkg = getString(R.string.live_tv_tif_package).trim();
+        ComponentName to = inputSourceComponent.isEmpty() ? null : ComponentName.unflattenFromString(inputSourceComponent);
+        if (pkg.isEmpty() || to == null) return false;
+        DisplayMetrics dm = getResources().getDisplayMetrics();
+        try {
+            startActivity(new Intent("com.cvte.intent.ACTION_TIF_PLAYER").addCategory(Intent.CATEGORY_DEFAULT)
+                    .setPackage(pkg).putExtra("sourceId", source).putExtra("left", 0).putExtra("top", 0)
+                    .putExtra("tune", true).putExtra("width", dm.widthPixels).putExtra("height", dm.heightPixels)
+                    .putExtra("toPackage", to.getPackageName()).putExtra("toActivity", to.getClassName())
+                    .putExtra("toAction", Intent.ACTION_MAIN).putExtra("toCategory1", "android.intent.category.TV_HOME")
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            return true;
+        } catch (ActivityNotFoundException | SecurityException e) {
+            return false;
+        }
+    }
+
+    private boolean btnLiveTvShown() {
+        return btnLiveTv.getVisibility() == View.VISIBLE;
+    }
+
+    /** The Live TV pill: the tuner's source number where input_source_component is set, else the Live TV app.
+     *  With live_tv_tif_package it goes through the CVTE TIF player as the source panel's DTV row does: that one
+     *  keeps the tuner's last DVB route (DVB-S on the Dijitsu), where the sourceid extra alone stays on HDMI. */
+    private void openLiveTvPill() {
+        if (liveTvSource >= 0 && openTifSource(liveTvSource)) return;
+        if (liveTvSource >= 0 && openSourceNumber(liveTvSource)) return;
+        Intent liveTv = liveTvIntent();
+        if (liveTv != null) open(liveTv);
+        else Toast.makeText(this, R.string.not_available, Toast.LENGTH_SHORT).show();
+    }
+
     /** Switches to a passthrough input (HDMI, AV). An input mapped in `input_sources` is opened by sending
      *  `input_action` with its source number as the int extra "input" (Xiaomi China firmware, whose tvplayer
      *  answers com.xiaomi.mitv.tvplayer.EXTSRC_PLAY and nothing else). Otherwise the standard way is
@@ -2869,6 +2933,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             }
         }
         Integer source = mappedSource(sourceId);
+        if (source != null && source >= 0 && openSourceNumber(source)) return;
         if (source != null && source >= 0 && !inputAction.isEmpty()) {
             try {
                 startActivity(new Intent(inputAction).putExtra("input", source.intValue())
@@ -3058,7 +3123,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     .setPackage(liveTvPkg);
             if (tuned.resolveActivity(getPackageManager()) != null) liveTv = tuned;
         }
-        if (liveTv != null) {
+        if (liveTv != null && !btnLiveTvShown()) {
             if (rows.getChildCount() > 0) addSeparator(rows);
             final Intent liveTvIntent = liveTv;
             addInputRow(rows, popup, R.drawable.ic_livetv, getString(R.string.live_tv), -1, () -> open(liveTvIntent));
