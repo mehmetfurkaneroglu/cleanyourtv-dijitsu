@@ -53,6 +53,10 @@ public class HomeKeyService extends AccessibilityService {
     private boolean settingsPanel;
     /** consume_volume_keys: Volume Up/Down go to VolumeKeys instead of on to the firmware. */
     private boolean consumeVolumeKeys;
+    /** consume_home_key (with key_filter and stock_home_redirect): Home opens this launcher and goes no further. */
+    private boolean consumeHomeKey;
+    /** volume_first_step: the swallowed volume key's first step is taken here too (consume_volume_keys). */
+    private boolean volumeFirstStep;
     /** app_keys, the same maps InputKeyService reads, for setups that run only this service. */
     private Map<Integer, String> appKeys = Collections.emptyMap();
     private Map<Integer, String> appScancodes = Collections.emptyMap();
@@ -177,6 +181,8 @@ public class HomeKeyService extends AccessibilityService {
         settingsKeycodes = config.settingsKeycodes;
         settingsPanel = config.settingsKeyPanel;
         consumeVolumeKeys = config.consumeVolumeKeys;
+        consumeHomeKey = config.keyFilter && getResources().getBoolean(R.bool.consume_home_key);
+        volumeFirstStep = getResources().getBoolean(R.bool.volume_first_step);
         appKeys = RemoteKeys.parseAppKeys(config.appKeys);
         appScancodes = RemoteKeys.parseAppScancodes(config.appKeys);
         RemoteKeys.applyKeyFilter(this, config.keyFilter);
@@ -232,7 +238,7 @@ public class HomeKeyService extends AccessibilityService {
                 && event.getKeyCode() != KeyEvent.KEYCODE_POWER && event.getKeyCode() != KeyEvent.KEYCODE_WAKEUP) {
             powerOnUntil = 0;
         }
-        if (consumeVolumeKeys && VolumeKeys.handle(this, event)) return true;
+        if (consumeVolumeKeys && VolumeKeys.handle(this, event, volumeFirstStep)) return true;
         // A scancode entry is more specific than any keycode, so it goes first.
         if (RemoteKeys.handle(this, event, appScancodes.get(event.getScanCode()),
                 holdAppScancodes.get(event.getScanCode()))) return true;
@@ -252,6 +258,12 @@ public class HomeKeyService extends AccessibilityService {
         if (RemoteKeys.handle(this, event, appKeys.get(event.getKeyCode()),
                 holdAppKeys.get(event.getKeyCode()))) return true;
         if (event.getKeyCode() == KeyEvent.KEYCODE_HOME && !stockHome.isEmpty()) {
+            // consume_home_key: firmware that starts its stock launcher from Home itself (CVTE's
+            // cvteInterceptKeyBeforeDispatching) never sees the key, so that launcher no longer flashes up first.
+            if (consumeHomeKey) {
+                if (event.getAction() == KeyEvent.ACTION_UP && !event.isCanceled()) openHome();
+                return true;
+            }
             redirectHomeKey(event);
             return false;
         }

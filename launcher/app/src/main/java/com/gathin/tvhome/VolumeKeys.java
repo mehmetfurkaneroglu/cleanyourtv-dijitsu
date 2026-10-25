@@ -40,6 +40,12 @@ final class VolumeKeys {
 
     /** Swallows a volume key (true) and repeats it while held; any other key is left alone (false). */
     static boolean handle(Context context, KeyEvent event) {
+        return handle(context, event, false);
+    }
+
+    /** {@code firstStep}: also take the first step here, for firmware that applies volume keys only after the filter
+     *  (CVTE, Dijitsu 43DS9800), where a swallowed tap would otherwise change nothing. */
+    static boolean handle(Context context, KeyEvent event, boolean firstStep) {
         int direction = direction(event.getKeyCode());
         if (direction == 0) return false;
         if (!changesPress(event.getAction(), event.getRepeatCount())) return true;
@@ -47,11 +53,14 @@ final class VolumeKeys {
         if (event.getAction() != KeyEvent.ACTION_DOWN) return true;
         AudioManager audio = context.getSystemService(AudioManager.class);
         if (audio == null) return true;
+        if (firstStep) audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, direction, AudioManager.FLAG_SHOW_UI);
         if (handler == null) handler = new Handler(Looper.getMainLooper());
         step = new Runnable() {
             @Override
             public void run() {
-                audio.adjustVolume(direction, AudioManager.FLAG_SHOW_UI);
+                // The music stream, not the "suggested" one: with Live TV in front that guess is not the set's
+                // volume on CVTE boards (Dijitsu 43DS9800), and a held key moved one step only.
+                audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, direction, AudioManager.FLAG_SHOW_UI);
                 handler.postDelayed(this, REPEAT_INTERVAL_MS);
             }
         };
