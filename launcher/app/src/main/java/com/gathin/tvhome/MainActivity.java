@@ -178,6 +178,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private View clockBlock;
     private View btnInputs;
     private View btnLiveTv;
+    /** The Sleep pill (sleep_timer_minutes): the TV's own sleep timer through the CVTE TV API. */
+    private TextView btnSleep;
+    private SleepTimer sleepTimer;
+    private final Runnable sleepTick = this::updateSleepPill;
     /** config show_inputs_pill: false keeps the Inputs pill hidden even when the TV has inputs. */
     private boolean showInputsPill = true;
     private TextView btnWifi;
@@ -969,6 +973,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             updateInputsButton();
             pillsShown = true;
         }
+        updateSleepPill();
         if (showStats) startStats();
         sky.update();
         wallpaperPlayer.start();
@@ -1139,6 +1144,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     protected void onPause() {
         super.onPause();
         root.removeCallbacks(showIdleClock);
+        root.removeCallbacks(sleepTick);
         endReorder();   // Home or another app while reordering keeps the order so far
         wallpaperPlayer.stop();
         stopAmbientAnimation();
@@ -1200,6 +1206,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (sleepTimer != null) sleepTimer.unbind();
         unregisterReceiver(packageReceiver);
         wallpaperPlayer.close();
         ConnectivityManager cm = getSystemService(ConnectivityManager.class);
@@ -3140,6 +3147,21 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         int alignment = getResources().getBoolean(R.bool.rtl_menu_bar) != underGear ? Gravity.END : Gravity.START;
         dropIn(popup, panel, anchor, alignment);
         rows.getChildAt(0).requestFocus();
+    }
+
+    /** The Sleep pill's label: the minutes left while the TV's timer runs, refreshed every 20 s while Home shows. */
+    private void updateSleepPill() {
+        root.removeCallbacks(sleepTick);
+        if (sleepTimer == null || !sleepTimer.available()) return;
+        int seconds = sleepTimer.remaining();
+        btnSleep.setText(seconds > 0 ? getString(R.string.sleep_running, (seconds + 59) / 60)
+                : getString(R.string.sleep_timer));
+        if (seconds > 0) root.postDelayed(sleepTick, 20_000);   // onPause removes it
+    }
+
+    private void setSleep(int seconds) {
+        if (!sleepTimer.set(seconds)) Toast.makeText(this, R.string.not_available, Toast.LENGTH_SHORT).show();
+        updateSleepPill();
     }
 
     private PopupWindow glassPopup(View panel, int width) {

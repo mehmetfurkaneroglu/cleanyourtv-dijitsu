@@ -110,6 +110,17 @@
     <!-- The package answering com.cvte.intent.ACTION_TIF_PLAYER (CVTE: com.cvte.tv.api.impl). Set, the Live TV pill
          opens live_tv_source through it, as the TV's own source panel does for DTV. Leave empty to omit. -->
     <string name="live_tv_tif_package" translatable="false">com.cvte.tv.api.impl</string>
+    <!-- A Sleep pill that sets the TV's own sleep timer through the CVTE TV API (SleepTimer), with these choices in
+         minutes. Hidden where the service does not answer. Empty leaves the pill out. -->
+    <integer-array name="sleep_timer_minutes">
+        <item>15</item>
+        <item>30</item>
+        <item>45</item>
+        <item>60</item>
+        <item>90</item>
+        <item>120</item>
+        <item>150</item>
+    </integer-array>
 
     <!-- Whether HomeKeyService and InputKeyService actually request key filtering (config.xml or a theme's
          "key_filter"). Some firmware (TCL Google TV on Android 12) drops key auto-repeat once ANY service
