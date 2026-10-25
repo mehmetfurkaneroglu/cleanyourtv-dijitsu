@@ -31,7 +31,12 @@
     <string name="program_save" tools:ignore="MissingTranslation">Save</string>
     <string name="program_delete" tools:ignore="MissingTranslation">Delete</string>
     <string name="program_pick_day" tools:ignore="MissingTranslation">Pick at least one day</string>
+    <string name="more_menu" tools:ignore="MissingTranslation">More</string>
+    <string name="more_menu_sleep" tools:ignore="MissingTranslation">More · %d min</string>
     <string name="live_tv_on_start" tools:ignore="MissingTranslation">Live TV at power-on</string>
+    <string name="sleep_left" tools:ignore="MissingTranslation">%d min left</string>
+    <string name="program_count" tools:ignore="MissingTranslation">%d programs</string>
+    <string name="program_none" tools:ignore="MissingTranslation">None</string>
     <string name="live_tv">Live TV</string>
     <string name="hdmi" translatable="false">HDMI</string>
     <string name="usb" translatable="false">USB</string>
@@ -82,6 +87,13 @@
     <string name="wallpaper_none">None</string>
     <string name="wallpaper_applied">Wallpaper changed</string>
     <string name="wallpaper_theme_default">Theme default</string>
+    <string name="adb" translatable="false">ADB</string>
+    <string name="program_info" tools:ignore="MissingTranslation">On the days and at the time you pick, the TV opens the channel you chose by itself. If the TV is off (standby), it turns itself on for it. Give it a "TV off after" time and the TV goes off when the program is over.</string>
+    <string name="live_tv_on_start_info" tools:ignore="MissingTranslation">On: when the TV is switched on (from standby or after a restart), Live TV (DTV) comes up. Off: the home screen comes up. If a program is due at that moment, its channel opens instead.</string>
+    <string name="adb_info" tools:ignore="MissingTranslation">Info</string>
+    <string name="adb_info_title" tools:ignore="MissingTranslation">Connecting over ADB</string>
+    <string name="adb_info_text" tools:ignore="MissingTranslation">1. Turn ADB on here.\n2. Put the computer on the same network as the TV.\n3. On the computer: adb connect %1$s:5555\n\nPort 5555 has no password: anyone on your network can reach the TV while it is on. Turn ADB off when you are done.</string>
+    <string name="adb_no_permission" tools:ignore="MissingTranslation">Needs a one-time grant over ADB: pm grant com.gathin.tvhome android.permission.WRITE_SECURE_SETTINGS</string>
     <string name="animations_state">Animations: %1$s</string>
     <string name="live_tv_on_start_state" tools:ignore="MissingTranslation">Live TV at power-on: %1$s</string>
     <string name="advanced_effects">Advanced effects</string>

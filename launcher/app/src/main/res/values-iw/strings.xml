@@ -8,7 +8,12 @@
     <string name="connected">מחובר</string>
     <string name="standby">בהמתנה</string>
     <string name="not_connected">אין מכשיר</string>
+    <string name="more_menu">עוד</string>
+    <string name="more_menu_sleep">עוד · %d דק׳</string>
     <string name="live_tv_on_start">שידור חי בהדלקה</string>
+    <string name="sleep_left">נותרו %d דק׳</string>
+    <string name="program_count">%d תזמונים</string>
+    <string name="program_none">אין</string>
     <string name="live_tv">שידור חי</string>
     <string name="no_inputs">לא נמצאו כניסות</string>
     <string name="good_morning">בוקר טוב</string>
@@ -49,6 +54,12 @@
     <string name="native_settings">הגדרות היצרן</string>
     <string name="columns_label">אפליקציות בשורה</string>
     <string name="dock_opacity_label">עוצמת הרקע בשורת המועדפים</string>
+    <string name="program_info">בימים ובשעה שבחרתם הטלוויזיה פותחת לבד את הערוץ שבחרתם. אם היא כבויה (המתנה), היא נדלקת בשבילו. עם זמן כיבוי, הטלוויזיה נכבית בסוף התוכנית.</string>
+    <string name="live_tv_on_start_info">פעיל: כשהטלוויזיה נדלקת (ממצב המתנה או אחרי הפעלה מחדש) מופיע שידור חי (DTV). כבוי: מופיע מסך הבית. אם תזמון מתחיל באותו רגע, נפתח הערוץ שלו.</string>
+    <string name="adb_info">מידע</string>
+    <string name="adb_info_title">חיבור דרך ADB</string>
+    <string name="adb_info_text">1. הפעילו כאן את ADB.\n2. חברו את המחשב לאותה רשת של הטלוויזיה.\n3. במחשב: adb connect %1$s:5555\n\nליציאה 5555 אין סיסמה: כשהיא פתוחה כל מי שברשת יכול להתחבר. כבו את ADB בסיום.</string>
+    <string name="adb_no_permission">נדרש אישור חד-פעמי דרך ADB: pm grant com.gathin.tvhome android.permission.WRITE_SECURE_SETTINGS</string>
     <string name="animations_state">הנפשות: %1$s</string>
     <string name="live_tv_on_start_state">שידור חי בהדלקה: %1$s</string>
     <string name="advanced_effects">אפקטים מתקדמים</string>

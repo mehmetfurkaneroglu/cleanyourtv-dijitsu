@@ -115,6 +115,7 @@
     <string name="usb_pill_component" translatable="false">com.cvte.tv.media/.BrowserActivity</string>
     <!-- One "More" pill with a chevron instead of the Sleep and Program pills: its dropdown holds Sleep, Program and the
          "Live TV at power-on" switch, so the top bar stays short. -->
+    <bool name="more_menu">true</bool>
     <!-- A Sleep pill that sets the TV's own sleep timer through the CVTE TV API (SleepTimer), with these choices in
          minutes. Hidden where the service does not answer. Empty leaves the pill out. -->
     <integer-array name="sleep_timer_minutes">

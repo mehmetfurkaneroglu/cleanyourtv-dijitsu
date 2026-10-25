@@ -375,6 +375,14 @@
                     android:nextFocusDown="@+id/grid" />
 
                 <TextView
+                    android:id="@+id/btnMore"
+                    style="@style/TopButton"
+                    android:text="@string/more_menu"
+                    android:drawableStart="@drawable/ic_chevron_down"
+                    android:visibility="gone"
+                    android:nextFocusDown="@+id/grid" />
+
+                <TextView
                     android:id="@+id/btnSleep"
                     style="@style/TopButton"
                     android:text="@string/sleep_timer"

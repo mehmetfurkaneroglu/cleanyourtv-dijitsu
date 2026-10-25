@@ -3,6 +3,7 @@ package com.gathin.tvhome;
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
@@ -182,6 +183,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private View btnUsb;
     /** The Sleep pill (sleep_timer_minutes): the TV's own sleep timer through the CVTE TV API. */
     private TextView btnSleep;
+    /** more_menu: the chevron pill whose dropdown holds Sleep, Program and "Live TV at power-on". */
+    private TextView btnMore;
+    private boolean moreMenu;
     /** Home came up at power-on with "Live TV at power-on" off: start on the Live TV pill, once. */
     static final String EXTRA_FOCUS_LIVE_TV = "com.gathin.tvhome.extra.FOCUS_LIVE_TV";
     private static final String LIVE_TV_FOCUS_BOOT_KEY = "live_tv_focus_boot";
@@ -709,6 +713,36 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         btnInputs = findViewById(R.id.btnInputs);
         View btnSettings = findViewById(R.id.btnSettings);
         btnInputs.setOnClickListener(v -> showInputs());
+        btnLiveTv = findViewById(R.id.btnLiveTv);
+        btnLiveTv.setOnClickListener(v -> openLiveTvPill());
+        if (liveTvPill) ((TextView) btnInputs).setText(R.string.hdmi);
+        findViewById(R.id.btnProgram).setOnClickListener(v -> startActivity(new Intent(this, ScheduleActivity.class)));
+        btnMore = findViewById(R.id.btnMore);
+        moreMenu = getResources().getBoolean(R.bool.more_menu);
+        if (moreMenu) {
+            findViewById(R.id.btnProgram).setVisibility(View.GONE);
+            btnMore.setVisibility(View.VISIBLE);
+            btnMore.setOnClickListener(v -> showMoreMenu());
+        }
+        ProgramSchedule.reschedule(this);
+        btnUsb = findViewById(R.id.btnUsb);
+        ComponentName usb = ComponentName.unflattenFromString(getString(R.string.usb_pill_component).trim());
+        if (usb != null) {
+            Intent usbIntent = new Intent(Intent.ACTION_MAIN).setComponent(usb);
+            if (getPackageManager().resolveActivity(usbIntent, 0) != null) {
+                btnUsb.setVisibility(View.VISIBLE);
+                btnUsb.setOnClickListener(v -> open(new Intent(usbIntent)));
+            }
+        }
+        btnSleep = findViewById(R.id.btnSleep);
+        if (getResources().getIntArray(R.array.sleep_timer_minutes).length > 0) {
+            btnSleep.setOnClickListener(v -> showSleepMenu());
+            sleepTimer = new SleepTimer(this, available -> {
+                btnSleep.setVisibility(available && !moreMenu ? View.VISIBLE : View.GONE);
+                updateSleepPill();
+            });
+            sleepTimer.bind();
+        }
         btnWifi.setOnClickListener(v -> openNetworkPill());
         btnWifi.setOnLongClickListener(v -> {
             open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
@@ -804,6 +838,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         btnUsb.setOnKeyListener(pillKeys);
         findViewById(R.id.btnProgram).setOnKeyListener(pillKeys);
         btnSleep.setOnKeyListener(pillKeys);
+        btnMore.setOnKeyListener(pillKeys);
         btnWifi.setOnKeyListener(pillKeys);
         btnSettings.setOnKeyListener(pillKeys);
         btnReorder.setOnKeyListener(pillKeys);
@@ -3191,7 +3226,120 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         int seconds = sleepTimer.remaining();
         btnSleep.setText(seconds > 0 ? getString(R.string.sleep_running, (seconds + 59) / 60)
                 : getString(R.string.sleep_timer));
+        btnMore.setText(seconds > 0 ? getString(R.string.more_menu_sleep, (seconds + 59) / 60)
+                : getString(R.string.more_menu));
         if (seconds > 0) root.postDelayed(sleepTick, 20_000);   // onPause removes it
+    }
+
+    /** Dropdown under the Sleep pill: Off and the configured minutes; the running choice gets the dot. */
+    private void showSleepMenu() {
+        if (sleepTimer == null || !sleepTimer.available()) {
+            Toast.makeText(this, R.string.not_available, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
+        LinearLayout rows = panel.findViewById(R.id.rows);
+        View anchor = moreMenu ? btnMore : btnSleep;
+        final PopupWindow popup = glassPopup(panel, Math.max(anchor.getWidth(), (int) (150 * density)));
+        int left = sleepTimer.remaining();
+        addInputRow(rows, popup, R.drawable.ic_sleep, getString(R.string.sleep_off), -1, () -> setSleep(0));
+        for (int minutes : getResources().getIntArray(R.array.sleep_timer_minutes)) {
+            addInputRow(rows, popup, R.drawable.ic_sleep, getString(R.string.sleep_minutes, minutes), -1,
+                    () -> setSleep(minutes * 60));
+        }
+        panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        popup.setWidth(Math.max(popup.getWidth(), Math.min(panel.getMeasuredWidth(), (int) (360 * density))));
+        dropIn(popup, panel, anchor, getResources().getBoolean(R.bool.rtl_menu_bar) ? Gravity.END : Gravity.START);
+        rows.getChildAt(0).requestFocus();
+        if (left <= 0) return;
+        // Focus the choice closest to what is left, so Down/Up adjusts from there.
+        int[] all = getResources().getIntArray(R.array.sleep_timer_minutes);
+        int best = 0;
+        for (int i = 0; i < all.length; i++) {
+            if (Math.abs(all[i] * 60 - left) < Math.abs(all[best] * 60 - left)) best = i;
+        }
+        rows.getChildAt(best + 1).requestFocus();
+    }
+
+    /** more_menu: Sleep (opens its own list), Program and the "Live TV at power-on" switch, which stays open. */
+    private void showMoreMenu() {
+        View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
+        LinearLayout rows = panel.findViewById(R.id.rows);
+        final PopupWindow popup = glassPopup(panel, Math.max(btnMore.getWidth(), (int) (240 * density)));
+        if (sleepTimer != null && sleepTimer.available()) {
+            int left = sleepTimer.remaining();
+            addInputRow(rows, popup, R.drawable.ic_sleep, getString(R.string.sleep_timer), -1,
+                    () -> root.post(this::showSleepMenu));
+            setRowStatus(rows.getChildAt(rows.getChildCount() - 1),
+                    left > 0 ? getString(R.string.sleep_left, (left + 59) / 60) : getString(R.string.sleep_off), false);
+        }
+        int count = ProgramSchedule.load(this).size();
+        addInputRow(rows, popup, R.drawable.ic_schedule, getString(R.string.program), -1,
+                () -> startActivity(new Intent(this, ScheduleActivity.class)));
+        View program = rows.getChildAt(rows.getChildCount() - 1);
+        setRowStatus(program, count > 0 ? getString(R.string.program_count, count) : getString(R.string.program_none), false);
+        rows.removeView(program);
+        addWithInfo(rows, program, popup, () -> showInfo(R.string.program, getString(R.string.program_info)));
+        View liveTv = getLayoutInflater().inflate(R.layout.item_input, rows, false);
+        ((ImageView) liveTv.findViewById(R.id.icon)).setImageResource(R.drawable.ic_livetv);
+        ((TextView) liveTv.findViewById(R.id.title)).setText(R.string.live_tv_on_start);
+        Runnable showLiveTv = () -> {
+            boolean on = Config.liveTvOnStart(this);
+            setRowStatus(liveTv, getString(on ? R.string.on : R.string.off), on);
+        };
+        showLiveTv.run();
+        liveTv.setOnClickListener(v -> {
+            getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE).edit()
+                    .putBoolean(Config.LIVE_TV_ON_START_KEY, !Config.liveTvOnStart(this)).apply();
+            showLiveTv.run();
+        });
+        addWithInfo(rows, liveTv, popup, () -> showInfo(R.string.live_tv_on_start, getString(R.string.live_tv_on_start_info)));
+        // ADB on/off; its Info says how to connect.
+        View adb = getLayoutInflater().inflate(R.layout.item_input, rows, false);
+        ((ImageView) adb.findViewById(R.id.icon)).setImageResource(R.drawable.ic_adb);
+        ((TextView) adb.findViewById(R.id.title)).setText(R.string.adb);
+        Runnable showAdb = () -> {
+            boolean on = AdbSwitch.isOn(this);
+            setRowStatus(adb, getString(on ? R.string.on : R.string.off), on);
+        };
+        showAdb.run();
+        adb.setOnClickListener(v -> {
+            if (AdbSwitch.toggle(this)) showAdb.run();
+        });
+        addWithInfo(rows, adb, popup, () -> AdbSwitch.showInfo(this));
+        panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        popup.setWidth(Math.max(popup.getWidth(), Math.min(panel.getMeasuredWidth(), (int) (360 * density))));
+        dropIn(popup, panel, btnMore, getResources().getBoolean(R.bool.rtl_menu_bar) ? Gravity.END : Gravity.START);
+        rows.getChildAt(0).requestFocus();
+    }
+
+    /** Adds a dropdown row with an Info button to its right (Right moves to it); Info closes the menu first. */
+    private void addWithInfo(LinearLayout rows, View row, PopupWindow popup, Runnable info) {
+        LinearLayout line = new LinearLayout(this);
+        line.setOrientation(LinearLayout.HORIZONTAL);
+        line.addView(row, new LinearLayout.LayoutParams(0, row.getLayoutParams().height, 1f));   // item_input's 42dp
+        ImageView button = (ImageView) getLayoutInflater().inflate(R.layout.item_icon_button, line, false);
+        button.setImageResource(R.drawable.ic_info);
+        button.setContentDescription(getString(R.string.adb_info));
+        button.setOnClickListener(v -> {
+            popup.dismiss();
+            info.run();
+        });
+        line.addView(button);
+        rows.addView(line);
+    }
+
+    private void showInfo(int title, CharSequence message) {
+        new AlertDialog.Builder(this).setTitle(title).setMessage(message)
+                .setPositiveButton(android.R.string.ok, null).show();
+    }
+
+    /** A dropdown row's right-hand text, with the green dot for a switch that is on. */
+    private static void setRowStatus(View row, CharSequence text, boolean dot) {
+        TextView status = row.findViewById(R.id.status);
+        status.setVisibility(View.VISIBLE);
+        status.setText(text);
+        row.findViewById(R.id.dot).setVisibility(dot ? View.VISIBLE : View.GONE);
     }
 
     private void setSleep(int seconds) {
