@@ -792,6 +792,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             return keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && v.getId() == rightButton;
         };
         btnInputs.setOnKeyListener(pillKeys);
+        btnLiveTv.setOnKeyListener(pillKeys);
+        btnUsb.setOnKeyListener(pillKeys);
+        findViewById(R.id.btnProgram).setOnKeyListener(pillKeys);
+        btnSleep.setOnKeyListener(pillKeys);
         btnWifi.setOnKeyListener(pillKeys);
         btnSettings.setOnKeyListener(pillKeys);
         btnReorder.setOnKeyListener(pillKeys);

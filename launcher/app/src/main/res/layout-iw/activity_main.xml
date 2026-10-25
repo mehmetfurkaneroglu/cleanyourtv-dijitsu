@@ -368,6 +368,13 @@
                     android:nextFocusDown="@+id/grid" />
 
                 <TextView
+                    android:id="@+id/btnProgram"
+                    style="@style/TopButton"
+                    android:text="@string/program"
+                    android:drawableStart="@drawable/ic_schedule"
+                    android:nextFocusDown="@+id/grid" />
+
+                <TextView
                     android:id="@+id/btnSleep"
                     style="@style/TopButton"
                     android:text="@string/sleep_timer"

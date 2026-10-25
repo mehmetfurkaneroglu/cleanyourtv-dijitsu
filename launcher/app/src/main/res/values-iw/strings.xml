@@ -149,4 +149,21 @@
     <string name="sleep_off">כבוי</string>
     <string name="sleep_minutes">%d דק׳</string>
     <string name="sleep_running">שינה · %d דק׳</string>
+    <string name="program">תזמון</string>
+    <string name="program_add">תזמון חדש</string>
+    <string name="program_edit">עריכת תזמון</string>
+    <string name="program_hint">פותח ערוץ בימים שנבחרו, גם ממצב המתנה</string>
+    <string name="program_every_day">כל יום</string>
+    <string name="program_summary">%1$s · %2$02d:%3$02d · ערוץ %4$d</string>
+    <string name="program_hour">שעה: %02d</string>
+    <string name="program_minute">דקה: %02d</string>
+    <string name="program_channel">ערוץ: %d</string>
+    <string name="program_adjust_hint">◀ ▶ או ספרות</string>
+    <string name="program_day_on">פעיל</string>
+    <string name="program_day_off">כבוי</string>
+    <string name="program_duration">כיבוי אחרי: %d דק׳</string>
+    <string name="program_duration_off">כיבוי אחרי: אף פעם</string>
+    <string name="program_save">שמירה</string>
+    <string name="program_delete">מחיקה</string>
+    <string name="program_pick_day">יש לבחור לפחות יום אחד</string>
 </resources>

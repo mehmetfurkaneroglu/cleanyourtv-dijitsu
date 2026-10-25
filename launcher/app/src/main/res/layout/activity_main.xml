@@ -354,6 +354,13 @@
                     android:nextFocusDown="@+id/grid" />
 
                 <TextView
+                    android:id="@+id/btnProgram"
+                    style="@style/TopButton"
+                    android:text="@string/program"
+                    android:drawableStart="@drawable/ic_schedule"
+                    android:nextFocusDown="@+id/grid" />
+
+                <TextView
                     android:id="@+id/btnWifi"
                     style="@style/TopButton"
                     android:maxWidth="180dp"

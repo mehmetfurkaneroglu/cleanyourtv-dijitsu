@@ -13,6 +13,24 @@
     <string name="sleep_off" tools:ignore="MissingTranslation">Off</string>
     <string name="sleep_minutes" tools:ignore="MissingTranslation">%d min</string>
     <string name="sleep_running" tools:ignore="MissingTranslation">Sleep · %d min</string>
+    <!-- Program (ScheduleActivity); only English and Turkish so far. -->
+    <string name="program" tools:ignore="MissingTranslation">Program</string>
+    <string name="program_add" tools:ignore="MissingTranslation">New program</string>
+    <string name="program_edit" tools:ignore="MissingTranslation">Edit program</string>
+    <string name="program_hint" tools:ignore="MissingTranslation">Opens a channel on chosen days, even from standby</string>
+    <string name="program_every_day" tools:ignore="MissingTranslation">Every day</string>
+    <string name="program_summary" tools:ignore="MissingTranslation">%1$s · %2$02d:%3$02d · Channel %4$d</string>
+    <string name="program_hour" tools:ignore="MissingTranslation">Hour: %02d</string>
+    <string name="program_minute" tools:ignore="MissingTranslation">Minute: %02d</string>
+    <string name="program_channel" tools:ignore="MissingTranslation">Channel: %d</string>
+    <string name="program_adjust_hint" tools:ignore="MissingTranslation">◀ ▶ or digits</string>
+    <string name="program_day_on" tools:ignore="MissingTranslation">On</string>
+    <string name="program_day_off" tools:ignore="MissingTranslation">Off</string>
+    <string name="program_duration" tools:ignore="MissingTranslation">TV off after: %d min</string>
+    <string name="program_duration_off" tools:ignore="MissingTranslation">TV off after: never</string>
+    <string name="program_save" tools:ignore="MissingTranslation">Save</string>
+    <string name="program_delete" tools:ignore="MissingTranslation">Delete</string>
+    <string name="program_pick_day" tools:ignore="MissingTranslation">Pick at least one day</string>
     <string name="live_tv">Live TV</string>
     <string name="hdmi" translatable="false">HDMI</string>
     <string name="usb" translatable="false">USB</string>
