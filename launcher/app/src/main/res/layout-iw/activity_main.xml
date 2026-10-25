@@ -360,6 +360,14 @@
                     android:nextFocusDown="@+id/grid" />
 
                 <TextView
+                    android:id="@+id/btnUsb"
+                    style="@style/TopButton"
+                    android:text="@string/usb"
+                    android:drawableStart="@drawable/ic_usb"
+                    android:visibility="gone"
+                    android:nextFocusDown="@+id/grid" />
+
+                <TextView
                     android:id="@+id/btnSleep"
                     style="@style/TopButton"
                     android:text="@string/sleep_timer"

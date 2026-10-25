@@ -27,6 +27,8 @@
     <queries>
         <!-- The CVTE TV API service behind the Sleep pill (SleepTimer). -->
         <package android:name="com.cvte.tv.api.impl" />
+        <!-- The TV media browser behind the USB pill. -->
+        <package android:name="com.cvte.tv.media" />
         <!-- The standard settings handlers, so package visibility doesn't hide them and send the pills to a vendor fallback by mistake. -->
         <intent>
             <action android:name="android.settings.SETTINGS" />

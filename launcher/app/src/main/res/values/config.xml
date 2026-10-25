@@ -19,8 +19,8 @@
     <string-array name="dock_apps">
         <item>com.netflix.ninja</item>
         <item>com.amazon.amazonvideo.livingroom</item>
-        <item>com.google.android.youtube.tv</item>
-        <item>in.startv.hotstar</item>
+        <item>com.wbd.stream</item>
+        <item>com.cvte.tv.media</item>
     </string-array>
     <!-- With fewer dock_apps than columns (or a dock app that is not installed), the free dock slots take
          the first grid apps, so the dock never shows a gap. false leaves them empty (#162); a theme can
@@ -110,6 +110,9 @@
     <!-- The package answering com.cvte.intent.ACTION_TIF_PLAYER (CVTE: com.cvte.tv.api.impl). Set, the Live TV pill
          opens live_tv_source through it, as the TV's own source panel does for DTV. Leave empty to omit. -->
     <string name="live_tv_tif_package" translatable="false">com.cvte.tv.api.impl</string>
+    <!-- A USB pill after the Inputs pill that opens this activity (the TV's media browser for USB drives). Hidden when it
+         does not resolve. Empty leaves the pill out. -->
+    <string name="usb_pill_component" translatable="false">com.cvte.tv.media/.BrowserActivity</string>
     <!-- A Sleep pill that sets the TV's own sleep timer through the CVTE TV API (SleepTimer), with these choices in
          minutes. Hidden where the service does not answer. Empty leaves the pill out. -->
     <integer-array name="sleep_timer_minutes">

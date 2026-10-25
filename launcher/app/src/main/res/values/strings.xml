@@ -15,6 +15,7 @@
     <string name="sleep_running" tools:ignore="MissingTranslation">Sleep · %d min</string>
     <string name="live_tv">Live TV</string>
     <string name="hdmi" translatable="false">HDMI</string>
+    <string name="usb" translatable="false">USB</string>
     <string name="no_inputs">No inputs found</string>
     <string name="good_morning">Good morning</string>
     <string name="good_afternoon">Good afternoon</string>

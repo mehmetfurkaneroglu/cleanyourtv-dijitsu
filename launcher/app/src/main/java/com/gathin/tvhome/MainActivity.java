@@ -178,6 +178,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private View clockBlock;
     private View btnInputs;
     private View btnLiveTv;
+    /** The USB pill (usb_pill_component): the TV's media browser for USB drives. */
+    private View btnUsb;
     /** The Sleep pill (sleep_timer_minutes): the TV's own sleep timer through the CVTE TV API. */
     private TextView btnSleep;
     private SleepTimer sleepTimer;
