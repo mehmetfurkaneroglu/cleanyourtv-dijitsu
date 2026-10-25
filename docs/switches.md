@@ -33,6 +33,16 @@ fits the rules; keys from before the rule sit on its wanted list until a screens
 | `home_idle_clock_minutes` | <img src="clock-screensaver.png" width="320" alt="home_idle_clock_minutes on a TV"> |
 | `gamepad_passthrough` | <img src="switches/gamepad_passthrough.jpg" width="320" alt="gamepad_passthrough on a TV"> |
 | `consume_volume_keys` | <img src="switches/consume_volume_keys.jpg" width="320" alt="consume_volume_keys on a TV"> |
+| `input_source_component` | <img src="switches/dijitsu-hdmi-menu.jpg" width="320" alt="input_source_component on a Dijitsu 43DS9800"> |
+| `live_tv_pill` | <img src="switches/dijitsu-top-bar.jpg" width="320" alt="live_tv_pill on a Dijitsu 43DS9800"> |
+| `live_tv_source` | <img src="switches/dijitsu-top-bar.jpg" width="320" alt="live_tv_source on a Dijitsu 43DS9800"> |
+| `live_tv_tif_package` | <img src="switches/dijitsu-top-bar.jpg" width="320" alt="live_tv_tif_package on a Dijitsu 43DS9800"> |
+| `usb_pill_component` | <img src="switches/dijitsu-top-bar.jpg" width="320" alt="usb_pill_component on a Dijitsu 43DS9800"> |
+| `sleep_timer_minutes` | <img src="switches/dijitsu-sleep-menu.jpg" width="320" alt="sleep_timer_minutes on a Dijitsu 43DS9800"> |
+| `wifi_icon_only` | <img src="switches/dijitsu-top-bar.jpg" width="320" alt="wifi_icon_only on a Dijitsu 43DS9800"> |
+| `consume_home_key` | <img src="switches/dijitsu-top-bar.jpg" width="320" alt="consume_home_key on a Dijitsu 43DS9800"> |
+| `volume_first_step` | <img src="switches/dijitsu-top-bar.jpg" width="320" alt="volume_first_step on a Dijitsu 43DS9800"> |
+| `more_menu` | <img src="switches/dijitsu-more-menu.jpg" width="320" alt="more_menu on a Dijitsu 43DS9800"> |
 | `wifi_status_warnings` | <img src="switches/wifi_status_warnings.jpg" width="320" alt="wifi_status_warnings on a TV"> |
 | `top_bar_apps` | <img src="switches/top_bar_apps.jpg" width="320" alt="top_bar_apps on a TV"> |
 | `show_greeting` | <img src="switches/show_greeting.jpg" width="320" alt="show_greeting on a TV"> |

@@ -17,7 +17,7 @@
 
     <!-- Apps pinned to the dock row at the bottom, in this order. Missing apps are skipped. -->
     <string-array name="dock_apps">
-        <item>com.netflix.ninja</item>
+        <item>com.google.android.youtube.tv</item>
         <item>com.amazon.amazonvideo.livingroom</item>
         <item>com.wbd.stream</item>
         <item>com.cvte.tv.media</item>
@@ -102,6 +102,9 @@
          type). YaOS: live-tv. Its source player answers live-tv://android.media.tv/passthrough/<input>, while the
          content:// URI goes to its channel player, which resumes the last film it played. Leave empty to omit. -->
     <string name="input_uri_scheme" translatable="false"></string>
+    <!-- CVTE boards (Dijitsu 43DS9800): a mapped input (input_sources) opens this TV activity with MAIN/TV_HOME, the
+         int extra "sourceid" and isLauncherGoToTv=true, the way the firmware's own HDMI auto-switch does. Takes
+         precedence over input_action. Leave empty to omit. -->
     <string name="input_source_component" translatable="false">com.cvte.tv.setting/.TvSettingActivity</string>
     <!-- A Live TV pill left of the Inputs pill, and the Inputs pill renamed HDMI without its Live TV row. With
          input_source_component set, the pill opens that source number (the tuner); -1 opens the Live TV app as is. -->
@@ -146,6 +149,8 @@
          steps (TCL G03 / BeyondTV4 on Android 11, #1100); a swallowed key gets no auto-repeat from Android, hence
          the helper's own. Leave it off where a tap is one step. A theme can set it ("consume_volume_keys"). -->
     <bool name="consume_volume_keys">true</bool>
+    <!-- With consume_volume_keys: take the first step of a swallowed volume key too, for firmware that only applies volume
+         keys after the key filter (CVTE, Dijitsu 43DS9800), where a tap would otherwise change nothing. -->
     <bool name="volume_first_step">true</bool>
 
     <!-- Vendor source numbers for the Inputs menu, "HW<n>=<number>" by the framework input id's last part
@@ -228,6 +233,8 @@
          Whenever that launcher's home screen comes up anyway, HomeKeyService (HOME_KEY_SERVICE=1) sends the TV
          straight back here. A theme's config.json can set it too. Leave empty to omit. -->
     <string name="stock_home_redirect" translatable="false">com.cvte.tv.launcher.fall</string>
+    <!-- With key_filter and stock_home_redirect: HomeKeyService takes the Home key itself and opens this launcher, so
+         firmware that starts the stock launcher from the key (CVTE) never shows it for a moment first. -->
     <bool name="consume_home_key">true</bool>
 
     <!-- For TVs whose firmware opens the Live TV app (live_tv_package) by itself at every power-on, with no setting
@@ -291,6 +298,8 @@
     <!-- Wi-Fi and Settings as round icon-only buttons (the network name moves to the talkback description);
          Inputs keeps its label. -->
     <bool name="icon_only_buttons">false</bool>
+    <!-- The Wi-Fi pill alone as a round icon (no network name), whatever icon_only_buttons says; the icon still
+         tells Wi-Fi, Ethernet and offline apart. -->
     <bool name="wifi_icon_only">true</bool>
     <!-- The Inputs pill as a round icon button too (the label moves to the talkback description). -->
     <bool name="icon_only_inputs">false</bool>

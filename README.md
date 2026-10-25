@@ -1,3 +1,20 @@
+> ## 🇹🇷 Dijitsu 43DS9800 çatalı / fork
+>
+> Bu depo, [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) projesinin **Dijitsu 43DS9800** (CVTE /
+> MediaTek MT9216, Android 11) için hazırlanmış bir çatalıdır. Reklamlı ana ekranın yerine Canlı TV, HDMI, USB, Uyku
+> zamanlayıcısı ve **TV kapalıyken bile çalışan kanal programlama** düğmeleri olan sade bir ana ekran kurar; firmware'de
+> gizli gelen şüpheli bir sistem uygulamasını da kapatır.
+>
+> This repository is a fork of CleanYourTV for the **Dijitsu 43DS9800**: a clean home screen with Live TV, HDMI, USB,
+> sleep-timer and **channel-scheduling (works from standby)** pills, plus the disabling of a suspicious hidden system
+> app shipped in the firmware.
+>
+> ![Dijitsu 43DS9800 ana ekranı / home screen](examples/dijitsu-43ds9800/screenshots/home.jpg)
+>
+> **➡️ Kurulum ve ayrıntılar / Setup and details: [examples/dijitsu-43ds9800](examples/dijitsu-43ds9800/README.md)**
+>
+> Aşağısı orijinal CleanYourTV README'sidir. / Below is the original CleanYourTV README.
+
 <p align="center">
   <a href="https://cleanyour.tv"><img src="https://raw.githubusercontent.com/Gathin23/cleanyourtv/main/docs/banner.png" alt="CleanYourTV. Your TV, minus the ads. Strip the bloatware from any Android TV or Google TV over Wi-Fi and replace the ad-filled home screen with a clean launcher that looks like an Apple TV. No root, no cable, nothing uninstalled, and a one-line restore." width="800"></a>
 </p>
@@ -616,6 +633,8 @@ and a wallpaper.
     Follow theme, or push the theme again.
   - **Animations** on or off, and **Advanced effects** (tile lift, icon zoom and smooth ambient-colour
     transitions; they may use more memory) once animations are on.
+  - **Live TV at power-on** on or off (Dijitsu fork): on, the TV comes up on DTV after a boot and after standby;
+    off, on Home. A program from the Program pill that is due wins either way. Unset, `boot_to_live_tv` decides.
   - **Open on start**, only with `open_on_start_choice`: Off, or an app that opens instead of Home the first
     time Home comes up after the TV starts. Once per boot, so Home and Back still reach the launcher.
   - **Follow theme (reset on-TV choices)**, which clears every choice above. Pushing or resetting a theme
