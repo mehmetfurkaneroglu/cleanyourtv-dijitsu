@@ -1,0 +1,32 @@
+# Dijitsu 43DS9800 (CVTE board TPD.MT9216.PB767, product mt5867_eu, model SMART_TV, MediaTek MT9216),
+# Android 11 (API 30), firmware 20221017_175037, userdebug/dev-keys, ~1 GB RAM, Turkey.
+# No Developer options and no stock Android Settings app (com.cvte.settings only). ADB comes from the
+# CVTE factory menu: Debug > ADB. Opening that menu disabled Play Store and Play services
+# (lastDisabledCaller 1000); `pm enable --user 0` brought both back.
+#
+# Apply:   TV_HOST=<tv ip> tools/disable.sh examples/dijitsu-43ds9800/debloat.txt
+# Undo:    TV_HOST=<tv ip> tools/restore.sh examples/dijitsu-43ds9800/debloat.txt
+# Everything is DISABLED, not uninstalled.
+#
+# Stock launcher com.cvte.tv.launcher.fall stays ENABLED (CVTE rule); the new launcher takes Home with
+# set-home-activity. Live TV: com.cvte.tv.setting/.TvSettingActivity. Source panel:
+# com.cvte.tv.globalui/.InputSourceActivity.
+#
+# KEEP: com.cvte.tv.setting, com.cvte.tv.globalui, com.mediatek.tvinput, com.mediatek.tv.service,
+# com.cvte.tvservice, com.cvte.tv.api.impl, com.cvte.tv.ucservice (auth), com.cvte.settings,
+# com.cvte.tv.taskmanager, every *fac* / *factory* / burn / tools package (never open them).
+
+# Hidden system app posing as com.android.*: obfuscated, loads downloaded dex, ~30 outbound connections
+com.android.media.tools
+
+# Ads, content and promos
+com.cvte.tv.pictorial                            # screensaver / wallpaper content pushed from the network
+com.stark.store                                  # vendor app store with promoted apps
+com.cvte.tv.weather                              # weather widget
+com.cvte.tv.steward                              # "TV assistant" cleaner
+com.mediatek.android.leanbacklauncher.partnercustomizer  # partner rows
+fusion.android.tv.demo                           # retail demo mode
+
+# Telemetry and remote access
+com.google.android.feedback                      # Google usage feedback
+com.cvte.tv.remotedebug                          # vendor remote customer service + screen recorder (owner choice)

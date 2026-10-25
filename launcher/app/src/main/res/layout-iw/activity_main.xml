@@ -375,6 +375,7 @@
                     android:text="@string/inputs"
                     android:drawableStart="@drawable/ic_input"
                     android:nextFocusDown="@+id/grid" />
+
             </LinearLayout>
         </RelativeLayout>
 

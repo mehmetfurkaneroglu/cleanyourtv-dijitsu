@@ -1,0 +1,6 @@
+{
+  "tv": "Dijitsu 43DS9800 (CVTE TPD.MT9216.PB767, mt5867_eu, SMART_TV, MediaTek MT9216), Turkey",
+  "os": "Android 11",
+  "brand": "Dijitsu",
+  "notes": "Not a certified Android TV: no Developer options and no stock Android Settings; ADB from the CVTE factory menu (DEBUG > ADB); a hidden system app posing as com.android.media.tools (obfuscated, loads downloaded dex, dozens of outbound connections) is listed in the vendor's startup/keeplive config and is disabled first; vendor content, store, weather, cleaner, demo, feedback and remote-support packages off; stock launcher kept (CVTE) with HomeKeyService + stock_home_redirect + consume_home_key, consume_volume_keys keeps the volume ramp; firmware disables Play services and the Play Store while Live TV is in front and re-enables them after; launcher fork adds Live TV / HDMI / USB / Sleep / Program pills through the CVTE TV API (sleep timer, tune by channel number, RTC power-on timer); reboot- and standby-checked"
+}

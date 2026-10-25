@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="docs/PRESS.md"><img src="docs/card.jpg" alt="300 TV models · 86 brands · 28 languages · 518 KB launcher. Featured in TechCrunch, TechRadar, Tom's Guide, Mashable, Android Authority, XDA, FlatpanelsHD, It's FOSS, Phandroid, GIGAZINE, Xataka, WinFuture, Frandroid, Macitynet, Techaeris, TechPP and 180 more: 196 articles from 32 countries. Before: stock Google TV home with a sponsored ad. After: the Clean Your TV launcher." width="800"></a>
+  <a href="docs/PRESS.md"><img src="docs/card.jpg" alt="301 TV models · 87 brands · 28 languages · 518 KB launcher. Featured in TechCrunch, TechRadar, Tom's Guide, Mashable, Android Authority, XDA, FlatpanelsHD, It's FOSS, Phandroid, GIGAZINE, Xataka, WinFuture, Frandroid, Macitynet, Techaeris, TechPP and 180 more: 196 articles from 32 countries. Before: stock Google TV home with a sponsored ad. After: the Clean Your TV launcher." width="800"></a>
 </p>
 
 **The viral tweet:** [x.com/gathint/status/2111379569030939102](https://x.com/gathint/status/2111379569030939102)
@@ -123,9 +123,10 @@ Tested lists from contributors, one folder per model in [`examples/`](examples/)
 **Vu** 3 · **CHiQ** 2 · **FFalcon** 2 · **Hitachi** 2 · **Insignia Fire TV** 2 · **Kalley** 2 · **Kogan** 2 ·
 **Motorola** 2 · **Nokia** 2 · **NVIDIA Shield** 2 · **onn** 2 · **RCA** 2 · **Redmi** 2 · **RockTek** 2 ·
 **Sankey** 2 · **Toshiba** 2 · **Vidda** 2 ·
-Acer · AiPro2K · AIWA · AQUA · Artel · ASUS · Beko · Caxium · Cecotec · Challenger · Compac · Dcolor · Dialog · EKO ·
-Freebox · Grundig · INCLO · Karbonn · KTC · Liberton · Lumio · Master-G · MTC · Next · Noblex · OK. · Panavox · PEAQ ·
-Polytron · PRISM+ · SANYO · Sber · Super General · Tele System · TiVo · Tornado · Turkcell · Tuvio · Verizon · Vision ·
+Acer · AiPro2K · AIWA · AQUA · Artel · ASUS · Beko · Caxium · Cecotec · Challenger · Compac · Dcolor · Dialog ·
+Dijitsu · EKO · Freebox · Grundig · INCLO · Karbonn · KTC · Liberton · Lumio · Master-G · MTC · Next · Noblex · OK. ·
+Panavox · PEAQ · Polytron · PRISM+ · SANYO · Sber · Super General · Tele System · TiVo · Tornado · Turkcell · Tuvio ·
+Verizon · Vision ·
 Alwtniet, Anker Nebula, BYINTEK, Epson, Formovie, Gadnic, HOTACK, HY320, JMGO, Magcubic, Portronics, Stellamore, Wanbo and XGIMI projectors
 
 <!-- tv-brands:end -->
@@ -169,6 +170,7 @@ Alwtniet, Anker Nebula, BYINTEK, Epson, Formovie, Gadnic, HOTACK, HY320, JMGO, M
 | Compac ATV R2 (SCBC R2, Realtek RTD285O) | Android TV 9 |
 | Dcolor GD2 (YHT) | Android TV 14 (SDK 34) |
 | Dialog ViU (SEI Robotics SEI103DL, Amlogic, NES middleware), Sri Lanka | Android TV 9 |
+| Dijitsu 43DS9800 (CVTE TPD.MT9216.PB767, mt5867_eu, SMART_TV, MediaTek MT9216), Turkey | Android 11 |
 | EKO 2K Google TV (MTC-built, tennoji, MediaTek mt5867 / T56) | Google TV 14 |
 | Epson LS800 laser projector (Askey HA90 module, sti6202d101, Amlogic) | Android TV 14 |
 | FFalcon (雷鸟) r34a0, China (V8-A920T01-LF1V147, Amlogic T920), 1 GB | Android 5.1.1 |
