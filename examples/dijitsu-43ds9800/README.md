@@ -16,7 +16,7 @@
 
 Bu klasör, **Dijitsu 43DS9800** televizyonunun reklam, öneri ve gereksiz yazılımlardan nasıl temizlendiğini ve
 yerine sade, hızlı bir ana ekranın nasıl kurulduğunu anlatır. [CleanYourTV](https://github.com/Gathin23/cleanyourtv)
-projesinin bir çatalıdır (fork). Aynı CVTE / MediaTek MT9216 kartını kullanan diğer Dijitsu modellerine de büyük
+projesinin bir fork'udur. Aynı CVTE / MediaTek MT9216 kartını kullanan diğer Dijitsu modellerine de büyük
 ölçüde uymalıdır, ancak yalnızca 43DS9800 üzerinde test edildi.
 
 > **Uyarı:** Resmî değildir; Dijitsu veya CVTE ile ilgisi yoktur. Her şey kendi sorumluluğunuzdadır. Hiçbir şey
@@ -59,7 +59,7 @@ tools/venv/bin/python -I tools/tv.py 'pm list packages -f | grep media.tools'
 servisi, üretici mağazası, hava durumu, "TV asistanı" temizleyici, partner satırları, demo modu, Google geri
 bildirim ve üreticinin uzaktan destek/ekran kaydı servisi.
 
-**Yeni ana ekran** (bu çataldaki launcher), üst çubukta:
+**Yeni ana ekran** (bu fork'taki launcher), üst çubukta:
 
 | Düğme | Ne yapar |
 |---|---|

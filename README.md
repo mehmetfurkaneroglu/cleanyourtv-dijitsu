@@ -1,19 +1,257 @@
-> ## 🇹🇷 Dijitsu 43DS9800 çatalı / fork
+# CleanYourTV – Dijitsu fork
+
+> **⚠️ Sorumluluk reddi:** Bu rehberi uygularken TV'sini bozan, kuramayan ya da veri kaybı yaşayan kişilerden
+> sorumluluk kabul etmiyoruz; her adım kendi riskinizdedir. Resmî değildir; Dijitsu veya CVTE ile ilgisi yoktur ve
+> garanti/servis haklarınızı etkileyebilir. Hiçbir uygulama silinmez, yalnızca devre dışı bırakılır ve geri alınabilir.
 >
-> Bu depo, [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) projesinin **Dijitsu 43DS9800** (CVTE /
-> MediaTek MT9216, Android 11) için hazırlanmış bir çatalıdır. Reklamlı ana ekranın yerine Canlı TV, HDMI, USB, Uyku
-> zamanlayıcısı ve **TV kapalıyken bile çalışan kanal programlama** düğmeleri olan sade bir ana ekran kurar; firmware'de
-> gizli gelen şüpheli bir sistem uygulamasını da kapatır.
->
-> This repository is a fork of CleanYourTV for the **Dijitsu 43DS9800**: a clean home screen with Live TV, HDMI, USB,
-> sleep-timer and **channel-scheduling (works from standby)** pills, plus the disabling of a suspicious hidden system
-> app shipped in the firmware.
->
-> ![Dijitsu 43DS9800 ana ekranı / home screen](examples/dijitsu-43ds9800/screenshots/home.jpg)
->
-> **➡️ Kurulum ve ayrıntılar / Setup and details: [examples/dijitsu-43ds9800](examples/dijitsu-43ds9800/README.md)**
->
-> Aşağısı orijinal CleanYourTV README'sidir. / Below is the original CleanYourTV README.
+> *Disclaimer: we take no responsibility for anyone who cannot complete these steps or damages their TV. Unofficial,
+> not affiliated with Dijitsu or CVTE; use at your own risk. Nothing is uninstalled, everything can be undone.*
+
+Bu depo, [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) projesinin **Dijitsu Android TV'ler** için
+hazırlanmış bir **fork**'udur. Reklamlı ana ekranın yerine sade, hızlı bir ana ekran kurar; firmware'de gizli gelen
+şüpheli bir sistem uygulamasını ve reklam servislerini kapatır. **Dijitsu 43DS9800** üzerinde test edildi; aynı CVTE /
+MediaTek MT9216 kartını kullanan diğer Dijitsu modellerinde de büyük ölçüde çalışması beklenir, ama garanti edilmez.
+
+![Yeni ana ekran](examples/dijitsu-43ds9800/screenshots/home.jpg)
+
+**Neler geliyor:**
+
+- **Canlı TV** düğmesi: HDMI'dayken bile tek basışta TV yayınına (DTV) geçer.
+- **HDMI** düğmesi: HDMI 1 / 2 / 3 arasında doğrudan geçiş.
+- **USB** düğmesi: USB bellekteki video, müzik ve fotoğraflar için TV'nin Medya Merkezi.
+- **Daha fazla ⌄** menüsü:
+  - **Uyku**: 15–150 dakika sonra TV kendini kapatır.
+  - **Program**: Seçtiğiniz gün ve saatte istediğiniz kanalı açar; **TV kapalıyken bile** kendini açar. İsterseniz
+    belli bir süre sonra kapanır.
+  - **Açılışta Canlı TV**: TV açılınca yayın mı, ana ekran mı gelsin.
+  - **ADB**: Hata ayıklamayı tek tuşla açıp kapatır.
+- Gizli şüpheli uygulama (`com.android.media.tools`), reklam/içerik servisleri, üretici mağazası, hava durumu,
+  "TV asistanı" temizleyici ve demo modu kapatılır.
+
+![Daha fazla menüsü](examples/dijitsu-43ds9800/screenshots/home-more-menu.jpg)
+
+---
+
+## Adım adım kurulum
+
+Toplam süre yaklaşık 30–45 dakika. Kurulum boyunca TV açık ve bilgisayarla **aynı Wi-Fi / ağda** olmalı.
+
+### 0. Gerekenler
+
+| | |
+|---|---|
+| Bilgisayar | macOS, Linux veya Windows |
+| [Git](https://git-scm.com/downloads) | Depoyu indirmek için |
+| [Python 3](https://www.python.org/downloads/) | TV'ye bağlanan araçlar için (Windows'ta kurulumda "Add Python to PATH" işaretleyin) |
+| [Android Studio](https://developer.android.com/studio) | Ana ekranı derlemek için. Kurduktan sonra **Settings → Languages & Frameworks → Android SDK** içinden **Android 14 (API 34)** platformunu ve **SDK Build-Tools 34** paketini işaretleyip yükleyin. JDK 17 Android Studio ile birlikte gelir. |
+| Kumanda | TV'nin kendi kumandası |
+
+### 1. TV'de ADB'yi açın (gizli fabrika menüsü)
+
+Bu TV'de "Geliştirici seçenekleri" yok; ADB yalnızca gizli fabrika menüsünden açılır.
+
+1. TV'yi açın. Ana ekranda ya da Canlı TV'de kumandadaki **menü tuşuna (☰, üç çizgili tuş)** basın.
+2. Menü açıkken rakam tuşlarıyla sırayla **1 1 4 7** girin. **Factory Menu** açılır.
+3. Yön tuşlarıyla **DEBUG** satırına gidin ve **OK**'a basın.
+4. **ADB ENABLE** satırını bulun ve **ON** yapın.
+5. **Geri / Exit** ile menüden çıkın.
+6. Fabrika menüsünün alt kısmındaki **IP** satırında TV'nin IP adresi yazar (ör. `192.168.1.50`). Bu adresi not alın.
+
+> **Dikkat:** Fabrika menüsünde **yalnızca DEBUG** satırına dokunun. **FACTORY MODE, SHIPPING INIT, AGING MODE,
+> SW UPGRADE, BOARD INIT** ve diğer ayarlar TV'yi sıfırlayabilir veya bozabilir.
+> Menü ana ekranda açılmazsa Canlı TV'yi açıp orada deneyin. ADB açılmazsa TV'yi bir kez kapatıp açın.
+
+### 2. Depoyu indirin ve araçları kurun
+
+**macOS / Linux** (Terminal):
+
+```bash
+git clone https://github.com/mehmetfurkaneroglu/cleanyourtv-dijitsu.git
+cd cleanyourtv-dijitsu
+python3 -m venv tools/venv
+tools/venv/bin/pip install -r tools/requirements.txt
+export TV_HOST=192.168.1.50          # kendi TV'nizin IP adresi
+```
+
+**Windows** (PowerShell):
+
+```powershell
+git clone https://github.com/mehmetfurkaneroglu/cleanyourtv-dijitsu.git
+cd cleanyourtv-dijitsu
+python -m venv tools\venv
+tools\venv\Scripts\python.exe -m pip install -r tools\requirements.txt
+$env:TV_HOST = "192.168.1.50"        # kendi TV'nizin IP adresi
+```
+
+### 3. TV'ye bağlanın
+
+```bash
+tools/venv/bin/python -I tools/tv.py --probe                 # macOS / Linux
+```
+
+```powershell
+tools\venv\Scripts\python.exe -I tools\tv.py --probe         # Windows
+```
+
+TV'nin modeli ve Android sürümü (11) listelenmeli. Bu firmware bağlantı için onay sormaz. Bağlanamıyorsanız IP'yi,
+aynı ağda olduğunuzu ve 1. adımda ADB'nin **ON** olduğunu kontrol edin.
+
+### 4. Yedek alın
+
+Herhangi bir şeyi değiştirmeden önce paket listesini ve ayarları kaydedin:
+
+```bash
+mkdir -p backup
+T="tools/venv/bin/python -I tools/tv.py"
+$T 'pm list packages -f' > backup/packages.txt
+$T 'pm list packages -d' > backup/disabled.txt
+$T 'settings list global; settings list secure; settings list system' > backup/settings.txt
+$T 'getprop' > backup/getprop.txt
+```
+
+Windows'ta aynı komutları `tools\venv\Scripts\python.exe -I tools\tv.py '...'` ile çalıştırın.
+
+### 5. Reklamları ve gereksiz uygulamaları kapatın
+
+```bash
+tools/disable.sh examples/dijitsu-43ds9800/debloat.txt                                               # macOS / Linux
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\disable.ps1 -TvHost $env:TV_HOST examples\dijitsu-43ds9800\debloat.txt   # Windows
+```
+
+Listede neyin neden kapatıldığı [debloat.txt](examples/dijitsu-43ds9800/debloat.txt) içinde yazıyor. Kullandığınız bir
+uygulama varsa o satırın başına `#` koyup komutu yeniden çalıştırın.
+
+### 6. Yeni ana ekranı derleyip kurun
+
+**macOS / Linux:**
+
+```bash
+export LC_ALL=en_US.UTF-8 JAVA_TOOL_OPTIONS="-Duser.language=en -Duser.country=US"   # Türkçe sistemlerde gerekli
+HOME_KEY_SERVICE=1 STOCK_LAUNCHER=none launcher/build-and-install.sh
+tools/theme.sh examples/dijitsu-43ds9800
+```
+
+**Windows:**
+
+```powershell
+$env:JAVA_TOOL_OPTIONS = "-Duser.language=en -Duser.country=US"                     # Türkçe sistemlerde gerekli
+powershell -ExecutionPolicy Bypass -File launcher\build-and-install.ps1 -TvHost $env:TV_HOST -StockLauncher none -HomeKeyService
+powershell -ExecutionPolicy Bypass -File tools\theme.ps1 -TvHost $env:TV_HOST examples\dijitsu-43ds9800
+```
+
+- İlk derleme birkaç dakika sürebilir. Sonunda `Installed` yazmalı.
+- `JAVA_TOOL_OPTIONS` satırı şart: Türkçe dil ayarlı bilgisayarlarda derleme aracı "İ" harfi yüzünden hata verir.
+- Son komut bu klasördeki ayar dosyasını yükler; ses tuşunun basılı tutunca sürekli artması bununla korunur.
+- Üreticinin eski ana ekranı **kapatılmaz** (bu karttaki TV'lerde kapatmak açılışı kilitleyebilir). Home'a basınca kısa
+  bir an görünüp yeni ana ekrana geçer; bu normaldir.
+
+### 7. İzinleri verin
+
+Bu TV'nin ayarlarında bazı izin ekranları yok; ADB ile verilir. macOS / Linux için (Windows'ta
+`tools\venv\Scripts\python.exe -I tools\tv.py '...'`):
+
+```bash
+T="tools/venv/bin/python -I tools/tv.py"
+# ADB'yi sonradan "Daha fazla" menüsünden açıp kapatabilmek için:
+$T 'pm grant com.gathin.tvhome android.permission.WRITE_SECURE_SETTINGS'
+# USB takınca çıkan "USB cihazı takılı" uyarısını kapatmak için (USB düğmesi zaten var):
+$T 'appops set com.cvte.tv.media SYSTEM_ALERT_WINDOW deny'
+```
+
+İsteğe bağlı: Play Store'dan kurduğunuz bir dosya yöneticisi "tüm dosyalara erişim" ya da "bilinmeyen kaynaklardan
+yükleme" izni isteyip hiçbir şey açılmıyorsa, `PAKET` yerine uygulamanın paket adını yazarak verin:
+
+```bash
+$T 'appops set PAKET MANAGE_EXTERNAL_STORAGE allow'
+$T 'appops set PAKET REQUEST_INSTALL_PACKAGES allow'
+```
+
+Yükleme izni verdiğiniz uygulama TV'ye istediği uygulamayı kurabilir; yalnızca güvendiğiniz uygulamalara verin.
+
+### 8. Yeniden başlatın ve deneyin
+
+TV'yi bir kez kapatıp açın (ya da `$T 'reboot'`). Sonra **gerçek kumandayla** şunları deneyin:
+
+- [ ] **Home** tuşu yeni ana ekranı açıyor.
+- [ ] **Canlı TV** düğmesi yayını, **HDMI** düğmesi HDMI girişlerini açıyor.
+- [ ] Ses tuşunu basılı tutunca ses sürekli artıp azalıyor.
+- [ ] **Daha fazla** menüsü açılıyor; Uyku, Program, Açılışta Canlı TV ve ADB satırları görünüyor.
+- [ ] Play Store ve YouTube açılıyor.
+
+Not: TV yayını açıkken üretici, bellekten tasarruf için Play Store'u geçici olarak kapatır, yayından çıkınca geri
+açar. Bu bir arıza değildir.
+
+### 9. Kişiselleştirin
+
+- **Favori uygulamalar (dock):** Sağ üstteki **Ayarlar** düğmesinde OK'a **basılı tutun → Dock'u düzenle**.
+- **Program:** **Daha fazla → Program → Yeni program**. Günleri OK ile seçin; saat, dakika, kanal ve kapanma süresini
+  ◀ ▶ ya da rakam tuşlarıyla girip **Kaydet**'e basın.
+- Satırların yanındaki **ⓘ** düğmesi (sağ tuşla geçilir) her seçeneğin ne yaptığını kısaca anlatır.
+
+### 10. ADB'yi kapatın (önemli)
+
+ADB açıkken ağınızdaki herhangi bir cihaz TV'ye şifresiz bağlanabilir. İşiniz bitince:
+
+1. **Daha fazla → ADB** satırına basıp **Kapalı** yapın (ya da fabrika menüsünden **DEBUG → ADB ENABLE → OFF**).
+2. Kapandığını kontrol edin:
+
+```bash
+tools/venv/bin/python -I tools/adb-closed.py 192.168.1.50
+```
+
+İleride bir değişiklik gerekirse ADB'yi yine **Daha fazla → ADB** ile açabilirsiniz; yanındaki **ⓘ** nasıl
+bağlanılacağını, TV'nin IP adresiyle birlikte gösterir.
+
+### Geri almak
+
+ADB açıkken:
+
+```bash
+T="tools/venv/bin/python -I tools/tv.py"
+tools/restore.sh examples/dijitsu-43ds9800/debloat.txt                       # kapatılan uygulamaları geri açar
+tools/theme.sh --reset                                                      # ayar dosyasını kaldırır
+$T 'settings put secure enabled_accessibility_services ""'
+$T 'cmd package set-home-activity --user 0 com.cvte.tv.launcher.fall/.MainActivity'   # eski ana ekran
+$T 'appops set com.cvte.tv.media SYSTEM_ALERT_WINDOW default'               # USB uyarısı geri gelir
+```
+
+Windows'ta `tools\restore.ps1` ve `tools\theme.ps1` aynı işi yapar. Tek bir uygulamayı geri açmak için:
+`$T 'pm enable PAKET'`.
+
+### Sorun giderme
+
+| Sorun | Çözüm |
+|---|---|
+| `tv.py --probe` bağlanmıyor | IP doğru mu, TV ve bilgisayar aynı ağda mı, ADB **ON** mu? TV'yi kapatıp açın. |
+| Derleme "İ" / `Cannot query the value of this provider` hatası veriyor | 6. adımdaki `JAVA_TOOL_OPTIONS` / `LC_ALL` satırını çalıştırın. |
+| Derleme `android.jar` / SDK bulamıyor | Android Studio → SDK Manager'dan **Android 14 (API 34)** ve **Build-Tools 34**'ü yükleyin. |
+| Ses tuşu basılı tutunca tek adım değişiyor | `tools/theme.sh examples/dijitsu-43ds9800` komutunu tekrar çalıştırın. |
+| Home'a basınca eski ana ekran bir an görünüyor | Normal; yeni ana ekran hemen gelir. |
+
+Ayrıntılı teknik notlar: [examples/dijitsu-43ds9800](examples/dijitsu-43ds9800/README.md).
+
+---
+
+## English (short)
+
+A **fork** of CleanYourTV for **Dijitsu** Android TVs (tested on the 43DS9800, CVTE MT9216, Android 11).
+
+1. On the TV: press **Menu (☰)**, then **1 1 4 7** → **Factory Menu → DEBUG → ADB ENABLE → ON**. Touch nothing else
+   there. The **IP** line at the bottom shows the TV's address.
+2. Install Git, Python 3 and Android Studio (Android 14 / API 34 platform and Build-Tools 34).
+3. Run the commands in steps 2–7 above (`tools/disable.sh examples/dijitsu-43ds9800/debloat.txt`,
+   `HOME_KEY_SERVICE=1 STOCK_LAUNCHER=none launcher/build-and-install.sh`, `tools/theme.sh examples/dijitsu-43ds9800`,
+   the two permission commands).
+4. Reboot, test with the real remote, then switch ADB off from **More → ADB** and check with `tools/adb-closed.py`.
+
+Details: [examples/dijitsu-43ds9800](examples/dijitsu-43ds9800/README.md).
+
+---
+
+*Aşağısı orijinal CleanYourTV README'sidir. / Below is the original CleanYourTV README.*
 
 <p align="center">
   <a href="https://cleanyour.tv"><img src="https://raw.githubusercontent.com/Gathin23/cleanyourtv/main/docs/banner.png" alt="CleanYourTV. Your TV, minus the ads. Strip the bloatware from any Android TV or Google TV over Wi-Fi and replace the ad-filled home screen with a clean launcher that looks like an Apple TV. No root, no cable, nothing uninstalled, and a one-line restore." width="800"></a>
