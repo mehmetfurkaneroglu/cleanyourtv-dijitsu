@@ -25,6 +25,8 @@ MediaTek MT9216 kartını kullanan diğer Dijitsu modellerinde de büyük ölç�
     belli bir süre sonra kapanır.
   - **Açılışta Canlı TV**: TV açılınca yayın mı, ana ekran mı gelsin.
   - **ADB**: Hata ayıklamayı tek tuşla açıp kapatır.
+  - **DNS**: Reklam ve takip engelleyen AdGuard DNS'i açıp kapatır. Bir uygulama açılmazsa ya da video takılırsa
+    buradan kapatılır.
 - Gizli şüpheli uygulama (`com.android.media.tools`), reklam/içerik servisleri, üretici mağazası, hava durumu,
   "TV asistanı" temizleyici ve demo modu kapatılır.
 
@@ -178,7 +180,7 @@ TV'yi bir kez kapatıp açın (ya da `$T 'reboot'`). Sonra **gerçek kumandayla*
 - [ ] **Home** tuşu yeni ana ekranı açıyor.
 - [ ] **Canlı TV** düğmesi yayını, **HDMI** düğmesi HDMI girişlerini açıyor.
 - [ ] Ses tuşunu basılı tutunca ses sürekli artıp azalıyor.
-- [ ] **Daha fazla** menüsü açılıyor; Uyku, Program, Açılışta Canlı TV ve ADB satırları görünüyor.
+- [ ] **Daha fazla** menüsü açılıyor; Uyku, Program, Açılışta Canlı TV, ADB ve DNS satırları görünüyor.
 - [ ] Play Store ve YouTube açılıyor.
 
 Not: TV yayını açıkken üretici, bellekten tasarruf için Play Store'u geçici olarak kapatır, yayından çıkınca geri

@@ -82,6 +82,7 @@
     <string name="dock_opacity_label">Dock bandı opaklığı</string>
     <string name="program_info">Seçtiğiniz günlerde ve saatte TV, istediğiniz kanalı kendisi açar. TV kapalıysa (bekleme modunda) o saatte kendiliğinden açılır. "Kapanma" süresi verirseniz program bitince TV kapanır.</string>
     <string name="live_tv_on_start_info">Açık: TV açılınca (bekleme modundan ya da yeniden başlatınca) Canlı TV (DTV) gelir. Kapalı: ana ekran gelir. O anda bir program varsa onun kanalı açılır.</string>
+    <string name="dns_info">Açık: Bütün uygulamalardaki reklam ve takip adresleri AdGuard DNS (%1$s) ile engellenir. Bir uygulama açılmıyor ya da video takılıyorsa DNS\'i buradan kapatıp tekrar deneyin.</string>
     <string name="adb_info">Bilgi</string>
     <string name="adb_info_title">ADB ile bağlanma</string>
     <string name="adb_info_text">1. ADB\'yi buradan açın.\n2. Bilgisayar TV ile aynı ağda olsun.\n3. Bilgisayarda: adb connect %1$s:5555\n\n5555 portunun şifresi yoktur: ADB açıkken ağınızdaki herkes TV\'ye bağlanabilir. İşiniz bitince ADB\'yi kapatın.</string>

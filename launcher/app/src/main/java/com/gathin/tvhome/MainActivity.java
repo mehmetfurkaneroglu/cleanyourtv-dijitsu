@@ -3261,7 +3261,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         rows.getChildAt(best + 1).requestFocus();
     }
 
-    /** more_menu: Sleep (opens its own list), Program and the "Live TV at power-on" switch, which stays open. */
+    /** more_menu: Sleep (opens its own list), Program, and the Live TV at power-on, ADB and DNS switches, which stay open. */
     private void showMoreMenu() {
         View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
         LinearLayout rows = panel.findViewById(R.id.rows);
@@ -3307,6 +3307,19 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (AdbSwitch.toggle(this)) showAdb.run();
         });
         addWithInfo(rows, adb, popup, () -> AdbSwitch.showInfo(this));
+        // Private DNS on AdGuard or automatic, for when an app stalls on a blocked tracker.
+        View dns = getLayoutInflater().inflate(R.layout.item_input, rows, false);
+        ((ImageView) dns.findViewById(R.id.icon)).setImageResource(R.drawable.ic_shield);
+        ((TextView) dns.findViewById(R.id.title)).setText(R.string.dns);
+        Runnable showDns = () -> {
+            boolean on = DnsSwitch.isOn(this);
+            setRowStatus(dns, getString(on ? R.string.on : R.string.off), on);
+        };
+        showDns.run();
+        dns.setOnClickListener(v -> {
+            if (DnsSwitch.toggle(this)) showDns.run();
+        });
+        addWithInfo(rows, dns, popup, () -> showInfo(R.string.dns, getString(R.string.dns_info, DnsSwitch.HOST)));
         panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         popup.setWidth(Math.max(popup.getWidth(), Math.min(panel.getMeasuredWidth(), (int) (360 * density))));
         dropIn(popup, panel, btnMore, getResources().getBoolean(R.bool.rtl_menu_bar) ? Gravity.END : Gravity.START);

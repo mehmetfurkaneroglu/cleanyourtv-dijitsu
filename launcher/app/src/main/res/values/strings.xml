@@ -88,6 +88,8 @@
     <string name="wallpaper_applied">Wallpaper changed</string>
     <string name="wallpaper_theme_default">Theme default</string>
     <string name="adb" translatable="false">ADB</string>
+    <string name="dns" translatable="false">DNS</string>
+    <string name="dns_info" tools:ignore="MissingTranslation">On: ads and trackers are blocked for every app through AdGuard DNS (%1$s). If an app will not open or a video stalls, turn DNS off here and try again.</string>
     <string name="program_info" tools:ignore="MissingTranslation">On the days and at the time you pick, the TV opens the channel you chose by itself. If the TV is off (standby), it turns itself on for it. Give it a "TV off after" time and the TV goes off when the program is over.</string>
     <string name="live_tv_on_start_info" tools:ignore="MissingTranslation">On: when the TV is switched on (from standby or after a restart), Live TV (DTV) comes up. Off: the home screen comes up. If a program is due at that moment, its channel opens instead.</string>
     <string name="adb_info" tools:ignore="MissingTranslation">Info</string>

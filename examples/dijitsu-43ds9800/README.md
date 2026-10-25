@@ -66,7 +66,7 @@ bildirim ve üreticinin uzaktan destek/ekran kaydı servisi.
 | **Canlı TV** | HDMI'dayken bile doğrudan DTV'ye geçer (TV'nin TIF oynatıcısı, `sourceId=0`). |
 | **HDMI** | HDMI 1 / 2 / 3 menüsü; seçilen porta doğrudan geçer (`sourceid` 5/6/7). |
 | **USB** | TV'nin kendi Medya Merkezi'ni açar (USB bellekteki video, müzik, fotoğraf). |
-| **Daha fazla ⌄** | Açılan menüde **Uyku**, **Program**, **Açılışta Canlı TV** ve **ADB** bulunur. Son üçünün yanındaki **ⓘ** (sağ tuşla geçilir) ne işe yaradığını kısaca anlatır. Uyku açıkken kalan süre bu düğmede de yazar. |
+| **Daha fazla ⌄** | Açılan menüde **Uyku**, **Program**, **Açılışta Canlı TV**, **ADB** ve **DNS** (AdGuard reklam engelleyici DNS, açılıp kapatılabilir) bulunur. Son dördünün yanındaki **ⓘ** (sağ tuşla geçilir) ne işe yaradığını kısaca anlatır. Uyku açıkken kalan süre bu düğmede de yazar. |
 | ↳ Uyku | TV'nin kendi uyku zamanlayıcısı: 15–150 dk. |
 | ↳ Program | Seçilen günlerde ve saatte istenen kanalı açar; isteğe bağlı olarak süre sonunda TV'yi kapatır. **TV kapalıyken de çalışır.** |
 | ↳ Açılışta Canlı TV | Açık (yeşil nokta): TV açılınca DTV gelir. Kapalı: ana ekran gelir ve odak **Canlı TV** düğmesinde olur; sonradan ana ekrana dönünce odak yine dock'tadır. Hem yeniden başlatmada hem bekleme modundan açılışta geçerlidir; o anda bir program varsa programın kanalı öncelikli. |
