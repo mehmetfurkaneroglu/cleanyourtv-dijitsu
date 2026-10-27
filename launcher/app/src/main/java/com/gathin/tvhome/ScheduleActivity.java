@@ -57,10 +57,7 @@ public final class ScheduleActivity extends Activity {
         editing = null;
         title.setText(R.string.program);
         rows.removeAllViews();
-        for (int i = 0; i < programs.size(); i++) {
-            final int index = i;
-            addRow(R.drawable.ic_schedule, describe(programs.get(i)), null, v -> edit(index));
-        }
+        for (int i = 0; i < programs.size(); i++) addProgramRow(i);
         showNames = () -> {
             for (int i = 0; i < programs.size(); i++) {
                 ((TextView) rows.getChildAt(i).findViewById(R.id.title)).setText(describe(programs.get(i)));
@@ -83,6 +80,7 @@ public final class ScheduleActivity extends Activity {
             editing.channelId = p.channelId;
             editing.channelName = p.channelName;
             editing.duration = p.duration;
+            editing.paused = p.paused;
         }
         title.setText(index >= 0 ? R.string.program_edit : R.string.program_add);
         rows.removeAllViews();
@@ -110,6 +108,34 @@ public final class ScheduleActivity extends Activity {
         addRow(R.drawable.ic_check, getString(R.string.program_save), null, v -> save());
         if (index >= 0) addRow(R.drawable.ic_delete, getString(R.string.program_delete), null, v -> delete());
         rows.getChildAt(0).requestFocus();
+    }
+
+    /**
+     * A program in the list: OK edits it, Right moves to its pause button (as the More menu's Info buttons), which
+     * pauses or resumes it in place.
+     */
+    private void addProgramRow(int index) {
+        ProgramSchedule.Program p = programs.get(index);
+        View row = addRow(R.drawable.ic_schedule, describe(p), "", v -> edit(index));
+        rows.removeView(row);
+        LinearLayout line = new LinearLayout(this);
+        line.setOrientation(LinearLayout.HORIZONTAL);
+        line.addView(row, new LinearLayout.LayoutParams(0, row.getLayoutParams().height, 1f));
+        ImageView button = (ImageView) getLayoutInflater().inflate(R.layout.item_icon_button, line, false);
+        Runnable show = () -> {
+            ((TextView) row.findViewById(R.id.status)).setText(p.paused ? R.string.program_paused : R.string.on);
+            row.findViewById(R.id.dot).setVisibility(p.paused ? View.GONE : View.VISIBLE);
+            button.setImageResource(p.paused ? R.drawable.ic_play : R.drawable.ic_pause);
+            button.setContentDescription(getString(p.paused ? R.string.program_resume : R.string.program_pause));
+        };
+        show.run();
+        button.setOnClickListener(v -> {
+            p.paused = !p.paused;
+            ProgramSchedule.save(this, programs);
+            show.run();
+        });
+        line.addView(button);
+        rows.addView(line);
     }
 
     private void save() {

@@ -17,8 +17,9 @@ import java.util.Locale;
 /**
  * Weekly programs: on the chosen days at HH:MM, open Live TV on a channel number (CvteTv) and, with a duration, put
  * the TV to sleep when it is over. Kept in the launcher's own preferences, one line per program
- * ("days;hour;minute;channel;minutes;channelId;channelName", days a bit mask with Monday as bit 0; the last two from
- * the TV's channel list, so the program follows its channel when the list renumbers), and run by one exact alarm for the next
+ * ("days;hour;minute;channel;minutes;channelId;channelName;paused", days a bit mask with Monday as bit 0; channelId
+ * and channelName from the TV's channel list, so the program follows its channel when the list renumbers; paused 1
+ * for a program kept but not run), and run by one exact alarm for the next
  * due program, set again after each run, a reboot or a clock change.
  *
  * The firmware turns wake-up alarms into plain ones, so in standby the alarm waits for the TV to come back. The next
@@ -45,6 +46,8 @@ final class ProgramSchedule {
         /** The channel's id and name on the TV's list, -1 and null for a program saved before they were kept. */
         int channelId = -1;
         String channelName;
+        /** Kept in the list but not run: no alarm, no power-on timer, until it is resumed. */
+        boolean paused;
         /** Minutes until the TV goes to standby once the program started; 0 leaves it on. */
         int duration;
 
@@ -72,12 +75,13 @@ final class ProgramSchedule {
 
         private String encode() {
             return days + ";" + hour + ";" + minute + ";" + channel + ";" + duration + ";" + channelId + ";"
-                    + (channelName != null ? channelName.replace(';', ',').replace('\n', ' ') : "");
+                    + (channelName != null ? channelName.replace(';', ',').replace('\n', ' ') : "") + ";"
+                    + (paused ? 1 : 0);
         }
 
         private static Program decode(String line) {
             String[] f = line.split(";", -1);
-            if (f.length < 4 || f.length > 7) return null;
+            if (f.length < 4 || f.length > 8) return null;
             try {
                 Program p = new Program();
                 p.days = Integer.parseInt(f[0]) & 0x7F;
@@ -85,10 +89,11 @@ final class ProgramSchedule {
                 p.minute = Integer.parseInt(f[2]);
                 p.channel = Integer.parseInt(f[3]);
                 p.duration = f.length >= 5 ? Integer.parseInt(f[4]) : 0;
-                if (f.length == 7) {
+                if (f.length >= 7) {
                     p.channelId = Integer.parseInt(f[5]);
                     p.channelName = f[6].isEmpty() ? null : f[6];
                 }
+                p.paused = f.length == 8 && "1".equals(f[7]);
                 return p.days != 0 && p.hour >= 0 && p.hour < 24 && p.minute >= 0 && p.minute < 60 && p.channel > 0
                         && p.duration >= 0 ? p : null;
             } catch (NumberFormatException e) {
@@ -114,6 +119,13 @@ final class ProgramSchedule {
         return list;
     }
 
+    /** The programs that run: all but the paused ones. */
+    private static List<Program> active(Context context) {
+        List<Program> list = load(context);
+        list.removeIf(p -> p.paused);
+        return list;
+    }
+
     static void save(Context context, List<Program> list) {
         StringBuilder all = new StringBuilder();
         for (Program p : list) all.append(p.encode()).append('\n');
@@ -130,7 +142,7 @@ final class ProgramSchedule {
         long last = prefs(context).getLong(LAST_RUN, 0);
         Program due = null;
         long dueMinute = 0;
-        for (Program p : load(context)) {
+        for (Program p : active(context)) {
             for (int back = 0; back <= CATCH_UP_MINUTES; back++) {
                 LocalDateTime t = now.minusMinutes(back);
                 if (!p.on(t.getDayOfWeek()) || t.getHour() != p.hour || t.getMinute() != p.minute) continue;
@@ -148,7 +160,7 @@ final class ProgramSchedule {
     /** A program starts within the catch-up window around now, so whatever the TV shows is the program's to pick. */
     static boolean inWindow(Context context) {
         LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
-        for (Program p : load(context)) {
+        for (Program p : active(context)) {
             for (int m = -CATCH_UP_MINUTES; m <= 1; m++) {
                 LocalDateTime t = now.plusMinutes(m);
                 if (p.on(t.getDayOfWeek()) && t.getHour() == p.hour && t.getMinute() == p.minute) return true;
@@ -164,7 +176,7 @@ final class ProgramSchedule {
         PendingIntent pi = PendingIntent.getBroadcast(context, 0,
                 new Intent(ACTION_RUN).setClass(context, ProgramReceiver.class),
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        LocalDateTime next = nextRun(load(context), LocalDateTime.now());
+        LocalDateTime next = nextRun(active(context), LocalDateTime.now());
         am.cancel(pi);
         SharedPreferences prefs = prefs(context);
         if (next == null) {
