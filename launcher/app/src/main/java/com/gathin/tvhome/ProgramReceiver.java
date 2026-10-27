@@ -22,7 +22,7 @@ public final class ProgramReceiver extends BroadcastReceiver {
             return;
         }
         PendingResult result = goAsync();
-        CvteTv.playChannel(context, due.channel, due.duration, () -> {
+        CvteTv.playChannel(context, due.channel, due.channelId, due.channelName, due.duration, () -> {
             ProgramSchedule.reschedule(context);
             result.finish();
         });

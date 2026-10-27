@@ -17,7 +17,8 @@ import java.util.Locale;
 /**
  * Weekly programs: on the chosen days at HH:MM, open Live TV on a channel number (CvteTv) and, with a duration, put
  * the TV to sleep when it is over. Kept in the launcher's own preferences, one line per program
- * ("days;hour;minute;channel;minutes", days a bit mask with Monday as bit 0), and run by one exact alarm for the next
+ * ("days;hour;minute;channel;minutes;channelId;channelName", days a bit mask with Monday as bit 0; the last two from
+ * the TV's channel list, so the program follows its channel when the list renumbers), and run by one exact alarm for the next
  * due program, set again after each run, a reboot or a clock change.
  *
  * The firmware turns wake-up alarms into plain ones, so in standby the alarm waits for the TV to come back. The next
@@ -39,7 +40,11 @@ final class ProgramSchedule {
         int days;      // bit 0 Monday ... bit 6 Sunday
         int hour = 19;
         int minute;
+        /** The channel's number on the TV's list when it was picked; see {@link CvteTv.Channels}. */
         int channel = 1;
+        /** The channel's id and name on the TV's list, -1 and null for a program saved before they were kept. */
+        int channelId = -1;
+        String channelName;
         /** Minutes until the TV goes to standby once the program started; 0 leaves it on. */
         int duration;
 
@@ -47,9 +52,9 @@ final class ProgramSchedule {
             return (days & (1 << (day.getValue() - 1))) != 0;
         }
 
-        /** "Pzt, Çar · 19:00 · Kanal 1 · 60 dk" in the TV's language. */
-        /** The list row's text; {@code channelName} (null when unknown) goes in brackets after the channel number. */
-        String describe(Context context, String channelName) {
+        /** "Pzt, Çar · 19:00 · TV2 HD · 60 dk" in the TV's language. */
+        /** The list row's text: the channel's {@code name}, or its number when the name is not known. */
+        String describe(Context context, String name) {
             StringBuilder names = new StringBuilder();
             if (days == 0x7F) {
                 names.append(context.getString(R.string.program_every_day));
@@ -60,25 +65,30 @@ final class ProgramSchedule {
                     names.append(dayName(d));
                 }
             }
-            String text = context.getString(R.string.program_summary, names, hour, minute, channel);
-            if (channelName != null) text += " (" + channelName + ")";
+            String text = name != null ? context.getString(R.string.program_summary_name, names, hour, minute, name)
+                    : context.getString(R.string.program_summary, names, hour, minute, channel);
             return duration > 0 ? text + " · " + context.getString(R.string.sleep_minutes, duration) : text;
         }
 
         private String encode() {
-            return days + ";" + hour + ";" + minute + ";" + channel + ";" + duration;
+            return days + ";" + hour + ";" + minute + ";" + channel + ";" + duration + ";" + channelId + ";"
+                    + (channelName != null ? channelName.replace(';', ',').replace('\n', ' ') : "");
         }
 
         private static Program decode(String line) {
-            String[] f = line.split(";");
-            if (f.length != 4 && f.length != 5) return null;
+            String[] f = line.split(";", -1);
+            if (f.length < 4 || f.length > 7) return null;
             try {
                 Program p = new Program();
                 p.days = Integer.parseInt(f[0]) & 0x7F;
                 p.hour = Integer.parseInt(f[1]);
                 p.minute = Integer.parseInt(f[2]);
                 p.channel = Integer.parseInt(f[3]);
-                p.duration = f.length == 5 ? Integer.parseInt(f[4]) : 0;
+                p.duration = f.length >= 5 ? Integer.parseInt(f[4]) : 0;
+                if (f.length == 7) {
+                    p.channelId = Integer.parseInt(f[5]);
+                    p.channelName = f[6].isEmpty() ? null : f[6];
+                }
                 return p.days != 0 && p.hour >= 0 && p.hour < 24 && p.minute >= 0 && p.minute < 60 && p.channel > 0
                         && p.duration >= 0 ? p : null;
             } catch (NumberFormatException e) {

@@ -26,7 +26,8 @@ import java.util.function.Consumer;
  * and the time of day in seconds, -1 for off.
  * The number on the TV's channel list is the list position (EntityChannel.LCN, after the TV's own sorting), while
  * TuneChannelByLcn takes the number from the scan, which the channel id carries in its high bits (TV2 HD: 268 on the
- * list, 294 from the scan). So a program's number is looked up in the list and tuned by id.
+ * list, 294 from the scan). The list number also moves when the operator drops a channel earlier in the list, so a
+ * program keeps the channel's id and name and is tuned by id.
  */
 final class CvteTv {
     private static final String API_PACKAGE = SleepTimer.PACKAGE;
@@ -74,15 +75,17 @@ final class CvteTv {
     }
 
     /**
-     * Opens DTV, tunes channel {@code number} and, with {@code offMinutes} above 0, starts the TV's own sleep timer so
-     * the set goes to standby when the program is over. {@code done} runs on the main thread at the end.
+     * Opens DTV, tunes the program's channel (see {@link #tune}) and, with {@code offMinutes} above 0, starts the TV's
+     * own sleep timer so the set goes to standby when the program is over. {@code done} runs on the main thread at the
+     * end.
      */
-    static void playChannel(Context context, int number, int offMinutes, Runnable done) {
+    static void playChannel(Context context, int number, int channelId, String channelName, int offMinutes,
+            Runnable done) {
         openDtv(context.getApplicationContext());
         withApi(context, (manager, finished) -> {
             Handler main = new Handler(Looper.getMainLooper());
             IBinder channels = subBinder(manager, GET_CHANNELS_API);
-            for (long delay : TUNE_DELAYS_MS) main.postDelayed(() -> tune(channels, number), delay);
+            for (long delay : TUNE_DELAYS_MS) main.postDelayed(() -> tune(channels, number, channelId, channelName), delay);
             if (offMinutes > 0) {
                 IBinder sleep = subBinder(manager, GET_SLEEP_API);
                 callInt(sleep, SLEEP, SLEEP_SET, offMinutes * 60);
@@ -157,33 +160,50 @@ final class CvteTv {
         if (!bound) main.post(done);
     }
 
-    /** Tunes the channel the TV's list shows as {@code number}; by scan number when the list cannot be read. */
-    private static boolean tune(IBinder channels, int number) {
-        int id = channelId(channels, number);
-        return id != -1 ? callInt(channels, CHANNELS, TUNE_BY_ID, id) : tuneByLcn(channels, number);
-    }
+    /**
+     * The TV's channel list, keyed by the number it shows: ids for tuning, names for Program's rows. A channel keeps
+     * its id while the satellite operator adds or drops other channels, though its list number moves.
+     */
+    static final class Channels {
+        final SparseIntArray ids = new SparseIntArray();
+        final SparseArray<String> names = new SparseArray<>();
 
-    /** The id of the channel at {@code number} on the TV's channel list, -1 when there is none. */
-    private static int channelId(IBinder channels, int number) {
-        SparseIntArray ids = new SparseIntArray();
-        readChannels(channels, ids, null);
-        return ids.get(number, -1);
+        /** The list number of the channel with {@code id}, else of the one called {@code name}; -1 when neither. */
+        int find(int id, String name) {
+            if (id != -1) {
+                int i = ids.indexOfValue(id);
+                if (i >= 0) return ids.keyAt(i);
+            }
+            if (name != null) {
+                for (int i = 0; i < names.size(); i++) if (name.equals(names.valueAt(i))) return names.keyAt(i);
+            }
+            return -1;
+        }
     }
 
     /**
-     * The TV's channel list by the number it shows (Program's channel row and list), handed to {@code done} on the main
-     * thread; empty when the TV API is not there.
+     * Tunes the program's channel: by its id, else by its name, else the channel at {@code number} on the list; by
+     * scan number when the list cannot be read.
      */
-    static void channelNames(Context context, Consumer<SparseArray<String>> done) {
-        SparseArray<String> names = new SparseArray<>();
-        withApi(context, (manager, finished) -> {
-            readChannels(subBinder(manager, GET_CHANNELS_API), null, names);
-            finished.run();
-        }, () -> done.accept(names));
+    private static boolean tune(IBinder channels, int number, int channelId, String channelName) {
+        Channels list = new Channels();
+        readChannels(channels, list);
+        int at = list.find(channelId, channelName);
+        int id = list.ids.get(at != -1 ? at : number, -1);
+        return id != -1 ? callInt(channels, CHANNELS, TUNE_BY_ID, id) : tuneByLcn(channels, number);
     }
 
-    /** Reads the TV's channel list into {@code ids} and {@code names} (either may be null), keyed by list number. */
-    private static void readChannels(IBinder channels, SparseIntArray ids, SparseArray<String> names) {
+    /** The TV's channel list, handed to {@code done} on the main thread; empty when the TV API is not there. */
+    static void channelList(Context context, Consumer<Channels> done) {
+        Channels list = new Channels();
+        withApi(context, (manager, finished) -> {
+            readChannels(subBinder(manager, GET_CHANNELS_API), list);
+            finished.run();
+        }, () -> done.accept(list));
+    }
+
+    /** Reads the TV's channel list into {@code list}. */
+    private static void readChannels(IBinder channels, Channels list) {
         if (channels == null) return;
         Parcel data = Parcel.obtain(), reply = Parcel.obtain();
         try {
@@ -199,8 +219,8 @@ final class CvteTv {
                 int id = reply.readInt();
                 int lcn = reply.readInt();
                 String name = reply.readString();
-                if (ids != null) ids.put(lcn, id);
-                if (names != null && name != null) names.put(lcn, name.trim());
+                list.ids.put(lcn, id);
+                if (name != null) list.names.put(lcn, name.trim());
                 for (int k = 0; k < 2; k++) if (reply.readString() != null) reply.createByteArray();
                 for (int k = 0; k < 11; k++) reply.readInt();
             }

@@ -2,7 +2,6 @@ package com.gathin.tvhome;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageView;
@@ -28,8 +27,8 @@ public final class ScheduleActivity extends Activity {
     /** Digits typed into a number row: a second digit on the same row within this window extends the first one. */
     private long lastDigitAt;
     private View lastDigitRow;
-    /** The TV's channel names by list number, read once when the screen opens; null until then. */
-    private SparseArray<String> channelNames;
+    /** The TV's channel list, read once when the screen opens; null until then. */
+    private CvteTv.Channels channels;
     /** Puts the names in the rows on screen once they arrive. */
     private Runnable showNames;
 
@@ -41,8 +40,9 @@ public final class ScheduleActivity extends Activity {
         title = findViewById(R.id.title);
         programs = ProgramSchedule.load(this);
         showList();
-        CvteTv.channelNames(this, names -> {
-            channelNames = names;
+        CvteTv.channelList(this, list -> {
+            channels = list;
+            if (editing != null) editing.channel = number(editing);
             if (showNames != null) showNames.run();
         });
     }
@@ -79,7 +79,9 @@ public final class ScheduleActivity extends Activity {
             editing.days = p.days;
             editing.hour = p.hour;
             editing.minute = p.minute;
-            editing.channel = p.channel;
+            editing.channel = number(p);
+            editing.channelId = p.channelId;
+            editing.channelName = p.channelName;
             editing.duration = p.duration;
         }
         title.setText(index >= 0 ? R.string.program_edit : R.string.program_add);
@@ -99,8 +101,11 @@ public final class ScheduleActivity extends Activity {
         View duration = addRow(R.drawable.ic_sleep, "", getString(R.string.program_adjust_hint), null);
         numberRow(hour, 0, 23, 1, () -> editing.hour, v -> editing.hour = v, R.string.program_hour);
         numberRow(minute, 0, 59, 1, () -> editing.minute, v -> editing.minute = v, R.string.program_minute);
-        showNames = numberRow(channel, 1, 9999, 1, () -> editing.channel, v -> editing.channel = v,
-                R.string.program_channel);
+        showNames = numberRow(channel, 1, 9999, 1, () -> editing.channel, v -> {
+            editing.channel = v;
+            editing.channelId = -1;   // a new pick: Save takes its id and name from the list
+            editing.channelName = null;
+        }, R.string.program_channel);
         numberRow(duration, 0, 300, 15, () -> editing.duration, v -> editing.duration = v, R.string.program_duration);
         addRow(R.drawable.ic_check, getString(R.string.program_save), null, v -> save());
         if (index >= 0) addRow(R.drawable.ic_delete, getString(R.string.program_delete), null, v -> delete());
@@ -111,6 +116,10 @@ public final class ScheduleActivity extends Activity {
         if (editing.days == 0) {
             title.setText(R.string.program_pick_day);
             return;
+        }
+        if (channels != null && editing.channelId == -1) {
+            editing.channelId = channels.ids.get(editing.channel, -1);
+            editing.channelName = channels.names.get(editing.channel);
         }
         if (editingIndex >= 0) programs.set(editingIndex, editing);
         else programs.add(editing);
@@ -132,12 +141,20 @@ public final class ScheduleActivity extends Activity {
         void set(int value);
     }
 
+    /** The list row names the channel the program will open: found by id or name, else at its saved number. */
     private String describe(ProgramSchedule.Program p) {
-        return p.describe(this, channelName(p.channel));
+        String name = channels != null ? channelName(number(p)) : p.channelName;
+        return p.describe(this, name);
+    }
+
+    /** The program's channel's number on the TV's list today, which moves when the operator renumbers it. */
+    private int number(ProgramSchedule.Program p) {
+        int at = channels != null ? channels.find(p.channelId, p.channelName) : -1;
+        return at != -1 ? at : p.channel;
     }
 
     private String channelName(int number) {
-        return channelNames != null ? channelNames.get(number) : null;
+        return channels != null ? channels.names.get(number) : null;
     }
 
     /**

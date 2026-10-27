@@ -169,6 +169,7 @@
     <string name="program_hint">פותח ערוץ בימים שנבחרו, גם ממצב המתנה</string>
     <string name="program_every_day">כל יום</string>
     <string name="program_summary">%1$s · %2$02d:%3$02d · ערוץ %4$d</string>
+    <string name="program_summary_name">%1$s · %2$02d:%3$02d · %4$s</string>
     <string name="program_hour">שעה: %02d</string>
     <string name="program_minute">דקה: %02d</string>
     <string name="program_channel">ערוץ: %d</string>

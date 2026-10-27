@@ -20,6 +20,7 @@
     <string name="program_hint" tools:ignore="MissingTranslation">Opens a channel on chosen days, even from standby</string>
     <string name="program_every_day" tools:ignore="MissingTranslation">Every day</string>
     <string name="program_summary" tools:ignore="MissingTranslation">%1$s · %2$02d:%3$02d · Channel %4$d</string>
+    <string name="program_summary_name" tools:ignore="MissingTranslation">%1$s · %2$02d:%3$02d · %4$s</string>
     <string name="program_hour" tools:ignore="MissingTranslation">Hour: %02d</string>
     <string name="program_minute" tools:ignore="MissingTranslation">Minute: %02d</string>
     <string name="program_channel" tools:ignore="MissingTranslation">Channel: %d</string>
