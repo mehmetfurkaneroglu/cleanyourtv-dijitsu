@@ -15,10 +15,14 @@ import android.util.DisplayMetrics;
  * Live TV on CVTE boards (Dijitsu 43DS9800) for the Program feature, through the firmware's TV API service with raw
  * binder calls, as SleepTimer does. Binder codes from /system/framework/cn.cvte.tv.api.jar:
  * ITvApiManager getTVApiSystemSleepTime = 74, getTVApiTvChannels = 91, getTVApiSystemOnOffTime = 120;
- * ITVApiTvChannelsAidl eventTVChannelsTuneChannelByLcn(major, minor) = 5; ITVApiSystemSleepTimeAidl set(seconds) = 1;
+ * ITVApiTvChannelsAidl eventTVChannelsGetChannelList(EnumInputSourceCategory) = 2, eventTVChannelsTuneChannelById(id) = 4,
+ * eventTVChannelsTuneChannelByLcn(major, minor) = 5; ITVApiSystemSleepTimeAidl set(seconds) = 1;
  * ITVApiSystemOnOffTimeAidl SetOnTime(EntityCycleTime) = 1, SetOnTimeWakeUpSource(source) = 7.
  * The on timer wakes the set from standby through the RTC; EntityCycleTime is a typed list of EnumWeekDay (Monday 0)
  * and the time of day in seconds, -1 for off.
+ * The number on the TV's channel list is the list position (EntityChannel.LCN, after the TV's own sorting), while
+ * TuneChannelByLcn takes the number from the scan, which the channel id carries in its high bits (TV2 HD: 268 on the
+ * list, 294 from the scan). So a program's number is looked up in the list and tuned by id.
  */
 final class CvteTv {
     private static final String API_PACKAGE = SleepTimer.PACKAGE;
@@ -30,6 +34,8 @@ final class CvteTv {
     private static final int GET_SLEEP_API = 74;
     private static final int GET_CHANNELS_API = 91;
     private static final int GET_ON_OFF_API = 120;
+    private static final int GET_CHANNEL_LIST = 2;
+    private static final int TUNE_BY_ID = 4;
     private static final int TUNE_BY_LCN = 5;
     private static final int SLEEP_SET = 1;
     private static final int SET_ON_TIME = 1;
@@ -72,7 +78,7 @@ final class CvteTv {
         withApi(context, (manager, finished) -> {
             Handler main = new Handler(Looper.getMainLooper());
             IBinder channels = subBinder(manager, GET_CHANNELS_API);
-            for (long delay : TUNE_DELAYS_MS) main.postDelayed(() -> tuneByLcn(channels, number), delay);
+            for (long delay : TUNE_DELAYS_MS) main.postDelayed(() -> tune(channels, number), delay);
             if (offMinutes > 0) {
                 IBinder sleep = subBinder(manager, GET_SLEEP_API);
                 callInt(sleep, SLEEP, SLEEP_SET, offMinutes * 60);
@@ -145,6 +151,41 @@ final class CvteTv {
             bound = false;
         }
         if (!bound) main.post(done);
+    }
+
+    /** Tunes the channel the TV's list shows as {@code number}; by scan number when the list cannot be read. */
+    private static boolean tune(IBinder channels, int number) {
+        int id = channelId(channels, number);
+        return id != -1 ? callInt(channels, CHANNELS, TUNE_BY_ID, id) : tuneByLcn(channels, number);
+    }
+
+    /** The id of the channel at {@code number} on the TV's channel list, -1 when there is none. */
+    private static int channelId(IBinder channels, int number) {
+        if (channels == null) return -1;
+        Parcel data = Parcel.obtain(), reply = Parcel.obtain();
+        try {
+            data.writeInterfaceToken(CHANNELS);
+            data.writeInt(1);   // EnumInputSourceCategory present
+            data.writeInt(DTV_SOURCE);   // INPUTSOURCE_TV: the current tuner list
+            channels.transact(GET_CHANNEL_LIST, data, reply, 0);
+            reply.readException();
+            for (int i = reply.readInt(); i > 0; i--) {
+                if (reply.readInt() == 0) continue;   // null entry
+                // EntityChannel: channelId, LCN, serviceName, serviceType and tvCategory (Serializable), locked,
+                // skipped, favorite group, scrambled, major, minor, serviceId, isHD, isBISS, satId, categoryId.
+                int id = reply.readInt();
+                int lcn = reply.readInt();
+                if (lcn == number) return id;
+                reply.readString();
+                for (int k = 0; k < 2; k++) if (reply.readString() != null) reply.createByteArray();
+                for (int k = 0; k < 11; k++) reply.readInt();
+            }
+        } catch (RemoteException | RuntimeException ignored) {
+        } finally {
+            data.recycle();
+            reply.recycle();
+        }
+        return -1;
     }
 
     private static boolean tuneByLcn(IBinder channels, int number) {

@@ -24,8 +24,9 @@ public final class ScheduleActivity extends Activity {
     /** The program in the editor, its index in {@link #programs} (-1 for a new one). */
     private ProgramSchedule.Program editing;
     private int editingIndex = -1;
-    /** Digits typed into a number row: a second digit within this window extends the first one. */
+    /** Digits typed into a number row: a second digit on the same row within this window extends the first one. */
     private long lastDigitAt;
+    private View lastDigitRow;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -132,8 +133,9 @@ public final class ScheduleActivity extends Activity {
             } else if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
                 int digit = keyCode - KeyEvent.KEYCODE_0;
                 long now = event.getEventTime();
-                int typed = now - lastDigitAt < 2_000 ? value * 10 + digit : digit;
+                int typed = row == lastDigitRow && now - lastDigitAt < 2_000 ? value * 10 + digit : digit;
                 lastDigitAt = now;
+                lastDigitRow = row;
                 if (typed > max) typed = digit;
                 set.set(Math.max(min, typed));
             } else {
