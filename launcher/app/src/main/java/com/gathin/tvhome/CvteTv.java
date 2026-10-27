@@ -10,6 +10,10 @@ import android.os.Looper;
 import android.os.Parcel;
 import android.os.RemoteException;
 import android.util.DisplayMetrics;
+import android.util.SparseArray;
+import android.util.SparseIntArray;
+
+import java.util.function.Consumer;
 
 /**
  * Live TV on CVTE boards (Dijitsu 43DS9800) for the Program feature, through the firmware's TV API service with raw
@@ -161,7 +165,26 @@ final class CvteTv {
 
     /** The id of the channel at {@code number} on the TV's channel list, -1 when there is none. */
     private static int channelId(IBinder channels, int number) {
-        if (channels == null) return -1;
+        SparseIntArray ids = new SparseIntArray();
+        readChannels(channels, ids, null);
+        return ids.get(number, -1);
+    }
+
+    /**
+     * The TV's channel list by the number it shows (Program's channel row and list), handed to {@code done} on the main
+     * thread; empty when the TV API is not there.
+     */
+    static void channelNames(Context context, Consumer<SparseArray<String>> done) {
+        SparseArray<String> names = new SparseArray<>();
+        withApi(context, (manager, finished) -> {
+            readChannels(subBinder(manager, GET_CHANNELS_API), null, names);
+            finished.run();
+        }, () -> done.accept(names));
+    }
+
+    /** Reads the TV's channel list into {@code ids} and {@code names} (either may be null), keyed by list number. */
+    private static void readChannels(IBinder channels, SparseIntArray ids, SparseArray<String> names) {
+        if (channels == null) return;
         Parcel data = Parcel.obtain(), reply = Parcel.obtain();
         try {
             data.writeInterfaceToken(CHANNELS);
@@ -175,8 +198,9 @@ final class CvteTv {
                 // skipped, favorite group, scrambled, major, minor, serviceId, isHD, isBISS, satId, categoryId.
                 int id = reply.readInt();
                 int lcn = reply.readInt();
-                if (lcn == number) return id;
-                reply.readString();
+                String name = reply.readString();
+                if (ids != null) ids.put(lcn, id);
+                if (names != null && name != null) names.put(lcn, name.trim());
                 for (int k = 0; k < 2; k++) if (reply.readString() != null) reply.createByteArray();
                 for (int k = 0; k < 11; k++) reply.readInt();
             }
@@ -185,7 +209,6 @@ final class CvteTv {
             data.recycle();
             reply.recycle();
         }
-        return -1;
     }
 
     private static boolean tuneByLcn(IBinder channels, int number) {

@@ -48,7 +48,8 @@ final class ProgramSchedule {
         }
 
         /** "Pzt, Çar · 19:00 · Kanal 1 · 60 dk" in the TV's language. */
-        String describe(Context context) {
+        /** The list row's text; {@code channelName} (null when unknown) goes in brackets after the channel number. */
+        String describe(Context context, String channelName) {
             StringBuilder names = new StringBuilder();
             if (days == 0x7F) {
                 names.append(context.getString(R.string.program_every_day));
@@ -60,6 +61,7 @@ final class ProgramSchedule {
                 }
             }
             String text = context.getString(R.string.program_summary, names, hour, minute, channel);
+            if (channelName != null) text += " (" + channelName + ")";
             return duration > 0 ? text + " · " + context.getString(R.string.sleep_minutes, duration) : text;
         }
 

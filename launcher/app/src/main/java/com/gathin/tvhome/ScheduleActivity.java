@@ -2,6 +2,7 @@ package com.gathin.tvhome;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageView;
@@ -27,6 +28,10 @@ public final class ScheduleActivity extends Activity {
     /** Digits typed into a number row: a second digit on the same row within this window extends the first one. */
     private long lastDigitAt;
     private View lastDigitRow;
+    /** The TV's channel names by list number, read once when the screen opens; null until then. */
+    private SparseArray<String> channelNames;
+    /** Puts the names in the rows on screen once they arrive. */
+    private Runnable showNames;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -36,6 +41,10 @@ public final class ScheduleActivity extends Activity {
         title = findViewById(R.id.title);
         programs = ProgramSchedule.load(this);
         showList();
+        CvteTv.channelNames(this, names -> {
+            channelNames = names;
+            if (showNames != null) showNames.run();
+        });
     }
 
     @Override
@@ -50,8 +59,13 @@ public final class ScheduleActivity extends Activity {
         rows.removeAllViews();
         for (int i = 0; i < programs.size(); i++) {
             final int index = i;
-            addRow(R.drawable.ic_schedule, programs.get(i).describe(this), null, v -> edit(index));
+            addRow(R.drawable.ic_schedule, describe(programs.get(i)), null, v -> edit(index));
         }
+        showNames = () -> {
+            for (int i = 0; i < programs.size(); i++) {
+                ((TextView) rows.getChildAt(i).findViewById(R.id.title)).setText(describe(programs.get(i)));
+            }
+        };
         addRow(R.drawable.ic_add, getString(R.string.program_add), programs.isEmpty()
                 ? getString(R.string.program_hint) : null, v -> edit(-1));
         rows.getChildAt(0).requestFocus();
@@ -85,7 +99,8 @@ public final class ScheduleActivity extends Activity {
         View duration = addRow(R.drawable.ic_sleep, "", getString(R.string.program_adjust_hint), null);
         numberRow(hour, 0, 23, 1, () -> editing.hour, v -> editing.hour = v, R.string.program_hour);
         numberRow(minute, 0, 59, 1, () -> editing.minute, v -> editing.minute = v, R.string.program_minute);
-        numberRow(channel, 1, 9999, 1, () -> editing.channel, v -> editing.channel = v, R.string.program_channel);
+        showNames = numberRow(channel, 1, 9999, 1, () -> editing.channel, v -> editing.channel = v,
+                R.string.program_channel);
         numberRow(duration, 0, 300, 15, () -> editing.duration, v -> editing.duration = v, R.string.program_duration);
         addRow(R.drawable.ic_check, getString(R.string.program_save), null, v -> save());
         if (index >= 0) addRow(R.drawable.ic_delete, getString(R.string.program_delete), null, v -> delete());
@@ -117,11 +132,26 @@ public final class ScheduleActivity extends Activity {
         void set(int value);
     }
 
-    /** A row whose value moves with Left/Right (wrapping) and takes digits typed on the remote. */
-    private void numberRow(View row, int min, int max, int step, Getter get, Setter set, int label) {
+    private String describe(ProgramSchedule.Program p) {
+        return p.describe(this, channelName(p.channel));
+    }
+
+    private String channelName(int number) {
+        return channelNames != null ? channelNames.get(number) : null;
+    }
+
+    /**
+     * A row whose value moves with Left/Right (wrapping) and takes digits typed on the remote. The channel row adds
+     * the channel's name from the TV's list. Returns the Runnable that redraws the row.
+     */
+    private Runnable numberRow(View row, int min, int max, int step, Getter get, Setter set, int label) {
         TextView text = row.findViewById(R.id.title);
-        Runnable show = () -> text.setText(label == R.string.program_duration && get.get() == 0
-                ? getString(R.string.program_duration_off) : getString(label, get.get()));
+        Runnable show = () -> {
+            String value = label == R.string.program_duration && get.get() == 0
+                    ? getString(R.string.program_duration_off) : getString(label, get.get());
+            String name = label == R.string.program_channel ? channelName(get.get()) : null;
+            text.setText(name != null ? value + " (" + name + ")" : value);
+        };
         show.run();
         row.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
@@ -144,6 +174,7 @@ public final class ScheduleActivity extends Activity {
             show.run();
             return true;
         });
+        return show;
     }
 
     private void showDay(View row, boolean on) {
