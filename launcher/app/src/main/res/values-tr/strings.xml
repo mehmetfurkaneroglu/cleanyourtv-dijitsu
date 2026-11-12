@@ -132,4 +132,10 @@
     <string name="greeting_with_name">%1$s, %2$s</string>
     <string name="brightness">Parlaklık</string>
     <string name="brightness_level">◀ %%%1$d ▶</string>
+    <string name="brightness_auto">Otomatik</string>
+    <string name="brightness_day_time">Gündüz başlangıcı</string>
+    <string name="brightness_day_level">Gündüz parlaklığı</string>
+    <string name="brightness_night_time">Akşam başlangıcı</string>
+    <string name="brightness_night_level">Akşam parlaklığı</string>
+    <string name="brightness_percent">%%%1$d</string>
 </resources>

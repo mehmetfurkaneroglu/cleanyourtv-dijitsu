@@ -92,6 +92,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * tvOS style home: black, a pinned dock row, an app grid, and one glass highlight that springs between tiles.
@@ -725,6 +726,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             btnMore.setOnClickListener(v -> showMoreMenu());
         }
         ProgramSchedule.reschedule(this);
+        BrightnessSchedule.reschedule(this);
         btnUsb = findViewById(R.id.btnUsb);
         ComponentName usb = ComponentName.unflattenFromString(getString(R.string.usb_pill_component).trim());
         if (usb != null) {
@@ -3273,7 +3275,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             setRowStatus(rows.getChildAt(rows.getChildCount() - 1),
                     left > 0 ? getString(R.string.sleep_left, (left + 59) / 60) : getString(R.string.sleep_off), false);
         }
-        addBrightnessRow(rows);
+        addBrightnessRow(rows, popup);
         int count = ProgramSchedule.load(this).size();
         addInputRow(rows, popup, R.drawable.ic_schedule, getString(R.string.program), -1,
                 () -> startActivity(new Intent(this, ScheduleActivity.class)));
@@ -3329,9 +3331,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     /**
      * The More menu's Brightness row: Left and Right move the TV's backlight in 5% steps (5% at least, so the screen
-     * never goes black), the same value as the TV's Picture > Backlight menu. Hidden where it cannot be read.
+     * never goes black), the same value as the TV's Picture > Backlight menu; OK opens the day and night levels
+     * (BrightnessSchedule). Hidden where it cannot be read.
      */
-    private void addBrightnessRow(LinearLayout rows) {
+    private void addBrightnessRow(LinearLayout rows, PopupWindow popup) {
         View row = getLayoutInflater().inflate(R.layout.item_input, rows, false);
         ((ImageView) row.findViewById(R.id.icon)).setImageResource(R.drawable.ic_brightness);
         ((TextView) row.findViewById(R.id.title)).setText(R.string.brightness);
@@ -3354,6 +3357,75 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             CvteTv.backlight(this, level[0], value -> { });
             return true;
         });
+        row.setOnClickListener(v -> {
+            popup.dismiss();
+            root.post(this::showBrightnessMenu);
+        });
+    }
+
+    /** The day and night backlight: Automatic on or off with OK, the times in 30-minute and the levels in 5% steps. */
+    private void showBrightnessMenu() {
+        View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
+        LinearLayout rows = panel.findViewById(R.id.rows);
+        PopupWindow popup = glassPopup(panel, Math.max(btnMore.getWidth(), (int) (240 * density)));
+        BrightnessSchedule s = BrightnessSchedule.load(this);
+        Runnable changed = () -> {
+            s.save(this);
+            BrightnessSchedule.reschedule(this);
+            BrightnessSchedule.apply(this, () -> { });
+        };
+        View auto = getLayoutInflater().inflate(R.layout.item_input, rows, false);
+        ((ImageView) auto.findViewById(R.id.icon)).setImageResource(R.drawable.ic_schedule);
+        ((TextView) auto.findViewById(R.id.title)).setText(R.string.brightness_auto);
+        Runnable showAuto = () -> setRowStatus(auto, getString(s.on ? R.string.on : R.string.off), s.on);
+        showAuto.run();
+        auto.setOnClickListener(v -> {
+            s.on = !s.on;
+            showAuto.run();
+            changed.run();
+        });
+        rows.addView(auto);
+        stepRow(rows, R.drawable.ic_schedule, R.string.brightness_day_time,
+                () -> clock(s.dayMinute), d -> s.dayMinute = Math.floorMod(s.dayMinute + d * 30, 24 * 60), changed);
+        stepRow(rows, R.drawable.ic_brightness, R.string.brightness_day_level,
+                () -> getString(R.string.brightness_percent, s.dayLevel),
+                d -> s.dayLevel = Math.max(5, Math.min(100, s.dayLevel + d * 5)), changed);
+        stepRow(rows, R.drawable.ic_schedule, R.string.brightness_night_time,
+                () -> clock(s.nightMinute), d -> s.nightMinute = Math.floorMod(s.nightMinute + d * 30, 24 * 60), changed);
+        stepRow(rows, R.drawable.ic_brightness, R.string.brightness_night_level,
+                () -> getString(R.string.brightness_percent, s.nightLevel),
+                d -> s.nightLevel = Math.max(5, Math.min(100, s.nightLevel + d * 5)), changed);
+        panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        popup.setWidth(Math.max(popup.getWidth(), Math.min(panel.getMeasuredWidth(), (int) (360 * density))));
+        dropIn(popup, panel, btnMore, getResources().getBoolean(R.bool.rtl_menu_bar) ? Gravity.END : Gravity.START);
+        rows.getChildAt(0).requestFocus();
+    }
+
+    private interface Step {
+        void by(int direction);
+    }
+
+    /** A row whose value Left and Right step (Step gets -1 or 1), shown as "◀ value ▶"; each step runs {@code changed}. */
+    private void stepRow(LinearLayout rows, int icon, int title, Supplier<String> value, Step step,
+            Runnable changed) {
+        View row = getLayoutInflater().inflate(R.layout.item_input, rows, false);
+        ((ImageView) row.findViewById(R.id.icon)).setImageResource(icon);
+        ((TextView) row.findViewById(R.id.title)).setText(title);
+        Runnable show = () -> setRowStatus(row, "◀ " + value.get() + " ▶", false);
+        show.run();
+        row.setOnKeyListener((v, keyCode, event) -> {
+            if (keyCode != KeyEvent.KEYCODE_DPAD_LEFT && keyCode != KeyEvent.KEYCODE_DPAD_RIGHT) return false;
+            if (event.getAction() != KeyEvent.ACTION_DOWN) return true;
+            step.by(keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ? 1 : -1);
+            show.run();
+            changed.run();
+            return true;
+        });
+        rows.addView(row);
+    }
+
+    private static String clock(int minute) {
+        return String.format(Locale.ROOT, "%02d:%02d", minute / 60, minute % 60);
     }
 
     /** Adds a dropdown row with an Info button to its right (Right moves to it); Info closes the menu first. */

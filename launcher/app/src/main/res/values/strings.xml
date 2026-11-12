@@ -196,4 +196,10 @@
     <string name="last_opened">Last opened %1$s</string>
     <string name="brightness" tools:ignore="MissingTranslation">Brightness</string>
     <string name="brightness_level" tools:ignore="MissingTranslation">◀ %1$d%% ▶</string>
+    <string name="brightness_auto" tools:ignore="MissingTranslation">Automatic</string>
+    <string name="brightness_day_time" tools:ignore="MissingTranslation">Day from</string>
+    <string name="brightness_day_level" tools:ignore="MissingTranslation">Day</string>
+    <string name="brightness_night_time" tools:ignore="MissingTranslation">Night from</string>
+    <string name="brightness_night_level" tools:ignore="MissingTranslation">Night</string>
+    <string name="brightness_percent" tools:ignore="MissingTranslation">%1$d%%</string>
 </resources>

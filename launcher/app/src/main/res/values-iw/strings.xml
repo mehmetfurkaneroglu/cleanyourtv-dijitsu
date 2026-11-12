@@ -186,4 +186,10 @@
     <string name="program_pick_day">יש לבחור לפחות יום אחד</string>
     <string name="brightness">בהירות</string>
     <string name="brightness_level">◀ %1$d%% ▶</string>
+    <string name="brightness_auto">אוטומטי</string>
+    <string name="brightness_day_time">יום מ-</string>
+    <string name="brightness_day_level">יום</string>
+    <string name="brightness_night_time">לילה מ-</string>
+    <string name="brightness_night_level">לילה</string>
+    <string name="brightness_percent">%1$d%%</string>
 </resources>
