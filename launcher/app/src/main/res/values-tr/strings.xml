@@ -130,4 +130,6 @@
         <item quantity="other">%1$d uygulama</item>
     </plurals>
     <string name="greeting_with_name">%1$s, %2$s</string>
+    <string name="brightness">Parlaklık</string>
+    <string name="brightness_level">◀ %%%1$d ▶</string>
 </resources>

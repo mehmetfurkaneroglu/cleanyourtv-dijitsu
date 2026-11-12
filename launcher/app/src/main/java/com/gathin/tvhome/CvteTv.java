@@ -14,6 +14,7 @@ import android.util.SparseArray;
 import android.util.SparseIntArray;
 
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 /**
  * Live TV on CVTE boards (Dijitsu 43DS9800) for the Program feature, through the firmware's TV API service with raw
@@ -39,6 +40,11 @@ final class CvteTv {
     private static final int GET_SLEEP_API = 74;
     private static final int GET_CHANNELS_API = 91;
     private static final int GET_ON_OFF_API = 120;
+    private static final int GET_BACKLIGHT_API = 36;
+    private static final String BACKLIGHT = "com.cvte.tv.api.aidl.ITVApiSystemBacklightAidl";
+    /** ITVApiSystemBacklightAidl DimmingPWMSetDuty / GetDuty: what the TV's Picture > Backlight menu sets, 0-100. */
+    private static final int BACKLIGHT_SET = 3;
+    private static final int BACKLIGHT_GET = 4;
     private static final int GET_CHANNEL_LIST = 2;
     private static final int TUNE_BY_ID = 4;
     private static final int TUNE_BY_LCN = 5;
@@ -125,6 +131,37 @@ final class CvteTv {
             }
             finished.run();
         }, () -> { });
+    }
+
+    /**
+     * The panel backlight in percent, the value the TV's own Picture > Backlight menu sets (0 to 100). Sets it to
+     * {@code set} first when that is 0 or more; {@code done} gets the value read back, -1 when it cannot be read.
+     */
+    static void backlight(Context context, int set, IntConsumer done) {
+        int[] level = {-1};
+        withApi(context, (manager, finished) -> {
+            IBinder light = subBinder(manager, GET_BACKLIGHT_API);
+            if (set >= 0) callInt(light, BACKLIGHT, BACKLIGHT_SET, Math.max(0, Math.min(100, set)));
+            level[0] = readInt(light, BACKLIGHT, BACKLIGHT_GET);
+            finished.run();
+        }, () -> done.accept(level[0]));
+    }
+
+    /** A no-argument call answering an int; -1 when it fails. */
+    private static int readInt(IBinder binder, String descriptor, int code) {
+        if (binder == null) return -1;
+        Parcel data = Parcel.obtain(), reply = Parcel.obtain();
+        try {
+            data.writeInterfaceToken(descriptor);
+            binder.transact(code, data, reply, 0);
+            reply.readException();
+            return reply.readInt();
+        } catch (RemoteException | RuntimeException e) {
+            return -1;
+        } finally {
+            data.recycle();
+            reply.recycle();
+        }
     }
 
     /** Binds the TV API service, hands the manager to {@code api}, unbinds after it and then runs {@code done}. */

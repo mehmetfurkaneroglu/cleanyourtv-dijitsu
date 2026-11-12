@@ -184,4 +184,6 @@
     <string name="program_save">שמירה</string>
     <string name="program_delete">מחיקה</string>
     <string name="program_pick_day">יש לבחור לפחות יום אחד</string>
+    <string name="brightness">בהירות</string>
+    <string name="brightness_level">◀ %1$d%% ▶</string>
 </resources>

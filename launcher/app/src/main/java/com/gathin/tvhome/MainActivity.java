@@ -3273,6 +3273,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             setRowStatus(rows.getChildAt(rows.getChildCount() - 1),
                     left > 0 ? getString(R.string.sleep_left, (left + 59) / 60) : getString(R.string.sleep_off), false);
         }
+        addBrightnessRow(rows);
         int count = ProgramSchedule.load(this).size();
         addInputRow(rows, popup, R.drawable.ic_schedule, getString(R.string.program), -1,
                 () -> startActivity(new Intent(this, ScheduleActivity.class)));
@@ -3324,6 +3325,35 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         popup.setWidth(Math.max(popup.getWidth(), Math.min(panel.getMeasuredWidth(), (int) (360 * density))));
         dropIn(popup, panel, btnMore, getResources().getBoolean(R.bool.rtl_menu_bar) ? Gravity.END : Gravity.START);
         rows.getChildAt(0).requestFocus();
+    }
+
+    /**
+     * The More menu's Brightness row: Left and Right move the TV's backlight in 5% steps (5% at least, so the screen
+     * never goes black), the same value as the TV's Picture > Backlight menu. Hidden where it cannot be read.
+     */
+    private void addBrightnessRow(LinearLayout rows) {
+        View row = getLayoutInflater().inflate(R.layout.item_input, rows, false);
+        ((ImageView) row.findViewById(R.id.icon)).setImageResource(R.drawable.ic_brightness);
+        ((TextView) row.findViewById(R.id.title)).setText(R.string.brightness);
+        row.setVisibility(View.GONE);
+        rows.addView(row);
+        int[] level = {-1};
+        Runnable show = () -> setRowStatus(row, getString(R.string.brightness_level, level[0]), false);
+        CvteTv.backlight(this, -1, value -> {
+            if (value < 0) return;
+            level[0] = value;
+            show.run();
+            row.setVisibility(View.VISIBLE);
+        });
+        row.setOnKeyListener((v, keyCode, event) -> {
+            if (keyCode != KeyEvent.KEYCODE_DPAD_LEFT && keyCode != KeyEvent.KEYCODE_DPAD_RIGHT) return false;
+            if (event.getAction() != KeyEvent.ACTION_DOWN || level[0] < 0) return true;
+            int step = keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ? 5 : -5;
+            level[0] = Math.max(5, Math.min(100, Math.round(level[0] / 5f) * 5 + step));
+            show.run();
+            CvteTv.backlight(this, level[0], value -> { });
+            return true;
+        });
     }
 
     /** Adds a dropdown row with an Info button to its right (Right moves to it); Info closes the menu first. */
