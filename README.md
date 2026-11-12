@@ -22,6 +22,7 @@ MediaTek MT9216 kartını kullanan diğer Dijitsu modellerinde de büyük ölç�
 - **Daha fazla ⌄** menüsü:
   - **Uyku**: 15–150 dakika sonra TV kendini kapatır.
   - **Parlaklık**: Ekranın arka ışığını ◀ ▶ ile %5 adımlarla kısar ya da açar (TV'nin Resim → Arka ışık ayarıyla aynı).
+    OK ile sabah ve akşam seviyesi kurulur (varsayılan 08:00'de %80, 21:00'de %15); TV o saatte kapalıysa açılınca uygular.
   - **Program**: Seçtiğiniz gün ve saatte istediğiniz kanalı açar; **TV kapalıyken bile** kendini açar. İsterseniz
     belli bir süre sonra kapanır.
   - **Açılışta Canlı TV**: TV açılınca yayın mı, ana ekran mı gelsin.
