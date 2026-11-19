@@ -29,10 +29,15 @@ MediaTek MT9216 kartını kullanan diğer Dijitsu modellerinde de büyük ölç�
   - **ADB**: Hata ayıklamayı tek tuşla açıp kapatır.
   - **DNS**: Reklam ve takip engelleyen AdGuard DNS'i açıp kapatır. Bir uygulama açılmazsa ya da video takılırsa
     buradan kapatılır.
+  - **İnternet**: Bu ayın kullanımını gösterir (Wi-Fi ve kablo, Android'in kendi sayacı; 1 GB = 1024 MB). OK ile
+    **Bugün**, **Bu ay**, **Geçen ay** ve **Genel** açılır; her birine basınca o dönemde en çok kullanan uygulamalar
+    listelenir. Uygulama indirmek gerekmez, launcher internete çıkmaz.
 - Gizli şüpheli uygulama (`com.android.media.tools`), reklam/içerik servisleri, üretici mağazası, hava durumu,
   "TV asistanı" temizleyici ve demo modu kapatılır.
 
 ![Daha fazla menüsü](examples/dijitsu-43ds9800/screenshots/home-more-menu.jpg)
+
+![İnternet → Bugün: o gün en çok kullanan uygulamalar](examples/dijitsu-43ds9800/screenshots/internet-today.jpg)
 
 ---
 
