@@ -210,4 +210,5 @@
     <string name="data_removed" tools:ignore="MissingTranslation">Removed apps</string>
     <string name="data_hotspot" tools:ignore="MissingTranslation">Hotspot</string>
     <string name="data_system" tools:ignore="MissingTranslation">Android system</string>
+    <string name="data_all" tools:ignore="MissingTranslation">All time</string>
 </resources>

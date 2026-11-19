@@ -7,6 +7,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.RemoteException;
 import android.util.SparseLongArray;
 
 import java.util.Calendar;
@@ -14,18 +15,24 @@ import java.util.function.Consumer;
 
 /**
  * The More menu's Internet row: the Wi-Fi and Ethernet bytes Android itself counts (NetworkStatsManager), for
- * today, this month and last month, and this month per app. Nothing is measured here and nothing goes on the
- * network; it reads the counters behind Settings' data usage screen. Needs usage access, granted once with
- * {@code appops set com.gathin.tvhome GET_USAGE_STATS allow}; without it {@link #read} answers null.
+ * today, this month, last month and everything Android still keeps, each in total and per app. Nothing is measured
+ * here and nothing goes on the network; it reads the counters behind Settings' data usage screen. Needs usage
+ * access, granted once with {@code appops set com.gathin.tvhome GET_USAGE_STATS allow}; without it {@link #read}
+ * answers null.
  */
 final class DataUsage {
     private static final int[] TYPES = {ConnectivityManager.TYPE_WIFI, ConnectivityManager.TYPE_ETHERNET};
 
-    long today;
-    long month;
-    long lastMonth;
-    /** This month's bytes by uid, received plus sent. */
-    final SparseLongArray apps = new SparseLongArray();
+    /** One stretch of time: its total, and its bytes by uid (received plus sent). */
+    static final class Period {
+        long total;
+        final SparseLongArray apps = new SparseLongArray();
+    }
+
+    final Period today = new Period();
+    final Period month = new Period();
+    final Period lastMonth = new Period();
+    final Period all = new Period();
 
     private DataUsage() {
     }
@@ -35,10 +42,10 @@ final class DataUsage {
         Context app = context.getApplicationContext();
         Handler main = new Handler(Looper.getMainLooper());
         new Thread(() -> {
-            DataUsage usage = null;
+            DataUsage usage;
             try {
                 usage = load(app);
-            } catch (SecurityException | IllegalStateException | android.os.RemoteException e) {
+            } catch (SecurityException | IllegalStateException | RemoteException e) {
                 usage = null;
             }
             DataUsage result = usage;
@@ -46,7 +53,7 @@ final class DataUsage {
         }, "data-usage").start();
     }
 
-    private static DataUsage load(Context context) throws android.os.RemoteException {
+    private static DataUsage load(Context context) throws RemoteException {
         AppOpsManager ops = context.getSystemService(AppOpsManager.class);
         if (ops == null || ops.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(),
                 context.getPackageName()) != AppOpsManager.MODE_ALLOWED) return null;
@@ -64,30 +71,29 @@ final class DataUsage {
         c.add(Calendar.MONTH, -1);
         long lastStart = c.getTimeInMillis();
         DataUsage u = new DataUsage();
-        for (int type : TYPES) {
-            u.today += device(nsm, type, dayStart, now);
-            u.month += device(nsm, type, monthStart, now);
-            u.lastMonth += device(nsm, type, lastStart, monthStart);
-            try (NetworkStats stats = nsm.querySummary(type, null, monthStart, now)) {
-                NetworkStats.Bucket b = new NetworkStats.Bucket();
-                while (stats.hasNextBucket() && stats.getNextBucket(b)) {
-                    long bytes = b.getRxBytes() + b.getTxBytes();
-                    u.apps.put(b.getUid(), u.apps.get(b.getUid()) + bytes);
-                }
-            } catch (RuntimeException e) {
-                // No per-app counters for this network type (no Ethernet port): the totals still stand.
-            }
-        }
+        fill(nsm, u.today, dayStart, now);
+        fill(nsm, u.month, monthStart, now);
+        fill(nsm, u.lastMonth, lastStart, monthStart);
+        fill(nsm, u.all, 0, now);
         return u;
     }
 
-    private static long device(NetworkStatsManager nsm, int type, long start, long end)
-            throws android.os.RemoteException {
-        try {
-            NetworkStats.Bucket b = nsm.querySummaryForDevice(type, null, start, end);
-            return b == null ? 0 : b.getRxBytes() + b.getTxBytes();
-        } catch (RuntimeException e) {
-            return 0;
+    private static void fill(NetworkStatsManager nsm, Period p, long start, long end) throws RemoteException {
+        for (int type : TYPES) {
+            try {
+                NetworkStats.Bucket b = nsm.querySummaryForDevice(type, null, start, end);
+                if (b != null) p.total += b.getRxBytes() + b.getTxBytes();
+            } catch (RuntimeException e) {
+                // No counters for this network type (no Ethernet port).
+            }
+            try (NetworkStats stats = nsm.querySummary(type, null, start, end)) {
+                NetworkStats.Bucket b = new NetworkStats.Bucket();
+                while (stats.hasNextBucket() && stats.getNextBucket(b)) {
+                    p.apps.put(b.getUid(), p.apps.get(b.getUid()) + b.getRxBytes() + b.getTxBytes());
+                }
+            } catch (RuntimeException e) {
+                // As above: the other network type still counts.
+            }
         }
     }
 }

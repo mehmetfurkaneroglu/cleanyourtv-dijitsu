@@ -200,4 +200,5 @@
     <string name="data_removed">אפליקציות שהוסרו</string>
     <string name="data_hotspot">נקודה חמה</string>
     <string name="data_system">מערכת Android</string>
+    <string name="data_all">סך הכול</string>
 </resources>
