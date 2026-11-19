@@ -138,4 +138,12 @@
     <string name="brightness_night_time">Akşam başlangıcı</string>
     <string name="brightness_night_level">Akşam parlaklığı</string>
     <string name="brightness_percent">%%%1$d</string>
+    <string name="data_usage">İnternet</string>
+    <string name="data_this_month">Bu ay %1$s</string>
+    <string name="data_today">Bugün</string>
+    <string name="data_month">Bu ay</string>
+    <string name="data_last_month">Geçen ay</string>
+    <string name="data_removed">Silinen uygulamalar</string>
+    <string name="data_hotspot">Hotspot</string>
+    <string name="data_system">Android sistemi</string>
 </resources>

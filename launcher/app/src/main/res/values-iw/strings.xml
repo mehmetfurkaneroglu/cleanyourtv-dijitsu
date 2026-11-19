@@ -192,4 +192,12 @@
     <string name="brightness_night_time">לילה מ-</string>
     <string name="brightness_night_level">לילה</string>
     <string name="brightness_percent">%1$d%%</string>
+    <string name="data_usage">אינטרנט</string>
+    <string name="data_this_month">%1$s החודש</string>
+    <string name="data_today">היום</string>
+    <string name="data_month">החודש</string>
+    <string name="data_last_month">החודש שעבר</string>
+    <string name="data_removed">אפליקציות שהוסרו</string>
+    <string name="data_hotspot">נקודה חמה</string>
+    <string name="data_system">מערכת Android</string>
 </resources>

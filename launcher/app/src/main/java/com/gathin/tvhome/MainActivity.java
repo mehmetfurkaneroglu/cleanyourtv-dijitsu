@@ -14,6 +14,7 @@ import android.content.SharedPreferences;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
+import android.text.format.Formatter;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ChangedPackages;
 import android.content.res.ColorStateList;
@@ -3323,6 +3324,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (DnsSwitch.toggle(this)) showDns.run();
         });
         addWithInfo(rows, dns, popup, () -> showInfo(R.string.dns, getString(R.string.dns_info, DnsSwitch.HOST)));
+        addDataUsageRow(rows, popup);
         panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         popup.setWidth(Math.max(popup.getWidth(), Math.min(panel.getMeasuredWidth(), (int) (360 * density))));
         dropIn(popup, panel, btnMore, getResources().getBoolean(R.bool.rtl_menu_bar) ? Gravity.END : Gravity.START);
@@ -3361,6 +3363,83 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             popup.dismiss();
             root.post(this::showBrightnessMenu);
         });
+    }
+
+    /**
+     * The More menu's Internet row: this month's Wi-Fi and Ethernet use as Android counts it (DataUsage); OK opens
+     * today, this month, last month and the apps that used the most this month. Hidden without usage access.
+     */
+    private void addDataUsageRow(LinearLayout rows, PopupWindow popup) {
+        View row = getLayoutInflater().inflate(R.layout.item_input, rows, false);
+        ((ImageView) row.findViewById(R.id.icon)).setImageResource(R.drawable.ic_data_usage);
+        ((TextView) row.findViewById(R.id.title)).setText(R.string.data_usage);
+        row.setVisibility(View.GONE);
+        rows.addView(row);
+        DataUsage.read(this, usage -> {
+            if (usage == null) return;
+            setRowStatus(row, getString(R.string.data_this_month, bytes(usage.month)), false);
+            row.setVisibility(View.VISIBLE);
+            row.setOnClickListener(v -> {
+                popup.dismiss();
+                root.post(() -> showDataUsageMenu(usage));
+            });
+        });
+    }
+
+    /** Today, this month and last month, then up to six apps by this month's use; the rows only show, OK closes. */
+    private void showDataUsageMenu(DataUsage usage) {
+        View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
+        LinearLayout rows = panel.findViewById(R.id.rows);
+        PopupWindow popup = glassPopup(panel, Math.max(btnMore.getWidth(), (int) (240 * density)));
+        Runnable close = () -> { };
+        addInputRow(rows, popup, R.drawable.ic_data_usage, getString(R.string.data_today), -1, close);
+        setRowStatus(rows.getChildAt(rows.getChildCount() - 1), bytes(usage.today), false);
+        addInputRow(rows, popup, R.drawable.ic_data_usage, getString(R.string.data_month), -1, close);
+        setRowStatus(rows.getChildAt(rows.getChildCount() - 1), bytes(usage.month), false);
+        addInputRow(rows, popup, R.drawable.ic_data_usage, getString(R.string.data_last_month), -1, close);
+        setRowStatus(rows.getChildAt(rows.getChildCount() - 1), bytes(usage.lastMonth), false);
+        List<int[]> order = new ArrayList<>();
+        for (int i = 0; i < usage.apps.size(); i++) {
+            if (usage.apps.valueAt(i) >= 1_000_000) order.add(new int[] {i});
+        }
+        order.sort((a, b) -> Long.compare(usage.apps.valueAt(b[0]), usage.apps.valueAt(a[0])));
+        PackageManager pm = getPackageManager();
+        for (int k = 0; k < Math.min(6, order.size()); k++) {
+            int uid = usage.apps.keyAt(order.get(k)[0]);
+            CharSequence name;
+            Drawable icon = null;
+            String[] packages = uid >= 0 ? pm.getPackagesForUid(uid) : null;
+            if (uid == android.app.usage.NetworkStats.Bucket.UID_REMOVED) name = getString(R.string.data_removed);
+            else if (uid == android.app.usage.NetworkStats.Bucket.UID_TETHERING) name = getString(R.string.data_hotspot);
+            else if (uid == android.os.Process.SHELL_UID) name = getString(R.string.adb);
+            else if (uid < android.os.Process.FIRST_APPLICATION_UID || packages == null) name = getString(R.string.data_system);
+            else {
+                name = packages[0];
+                try {
+                    ApplicationInfo info = pm.getApplicationInfo(packages[0], 0);
+                    name = pm.getApplicationLabel(info);
+                    icon = pm.getApplicationIcon(info);
+                } catch (PackageManager.NameNotFoundException e) {
+                    // Not visible to the launcher: the package name stands in for the label.
+                }
+            }
+            addInputRow(rows, popup, R.drawable.ic_data_usage, name.toString(), -1, close);
+            View row = rows.getChildAt(rows.getChildCount() - 1);
+            if (icon != null) {
+                ImageView view = row.findViewById(R.id.icon);
+                view.setImageTintList(null);
+                view.setImageDrawable(icon);
+            }
+            setRowStatus(row, bytes(usage.apps.valueAt(order.get(k)[0])), false);
+        }
+        panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        popup.setWidth(Math.max(popup.getWidth(), Math.min(panel.getMeasuredWidth(), (int) (360 * density))));
+        dropIn(popup, panel, btnMore, getResources().getBoolean(R.bool.rtl_menu_bar) ? Gravity.END : Gravity.START);
+        rows.getChildAt(0).requestFocus();
+    }
+
+    private String bytes(long count) {
+        return Formatter.formatFileSize(this, count);
     }
 
     /** The day and night backlight: Automatic on or off with OK, the times in 30-minute and the levels in 5% steps. */

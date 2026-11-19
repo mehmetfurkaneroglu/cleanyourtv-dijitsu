@@ -202,4 +202,12 @@
     <string name="brightness_night_time" tools:ignore="MissingTranslation">Night from</string>
     <string name="brightness_night_level" tools:ignore="MissingTranslation">Night</string>
     <string name="brightness_percent" tools:ignore="MissingTranslation">%1$d%%</string>
+    <string name="data_usage" tools:ignore="MissingTranslation">Internet</string>
+    <string name="data_this_month" tools:ignore="MissingTranslation">%1$s this month</string>
+    <string name="data_today" tools:ignore="MissingTranslation">Today</string>
+    <string name="data_month" tools:ignore="MissingTranslation">This month</string>
+    <string name="data_last_month" tools:ignore="MissingTranslation">Last month</string>
+    <string name="data_removed" tools:ignore="MissingTranslation">Removed apps</string>
+    <string name="data_hotspot" tools:ignore="MissingTranslation">Hotspot</string>
+    <string name="data_system" tools:ignore="MissingTranslation">Android system</string>
 </resources>
